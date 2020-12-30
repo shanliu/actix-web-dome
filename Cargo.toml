@@ -1,0 +1,14 @@
+#cargo-features = ['named-profiles']
+[package]
+name = "untitled"
+version = "0.1.0"
+authors = ["liushan <shan.liu@msn.com>"]
+edition = "2018"
+
+#[profile.release]
+#panic = "unwind"
+
+
+[dependencies]
+futures="0.3"
+actix-web = "3"
