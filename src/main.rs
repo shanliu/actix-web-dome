@@ -33,12 +33,9 @@ async fn main() -> std::io::Result<()> {
     let pool = PoolOptions::<MySql>::new()
         .max_connections(5)
         .connect("mysql://root:123456@127.0.0.1/database").await.unwrap();
-    let c=SiteSetting {
-        app_name: String::from("Actix-web"),
-        db:pool.clone()
-    };
+
     std::env::set_var("RUST_LOG", "actix_web=info");
-    HttpServer::new(|| {
+    HttpServer::new(move|| {
         App::new()
             .wrap(middleware::Logger::default())
             .data(SiteSetting {
