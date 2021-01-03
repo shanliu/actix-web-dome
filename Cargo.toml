@@ -17,3 +17,4 @@ actix-session = "0.4"
 actix-utils = "2"
 env_logger = "0.8"
 serde="1.0.118"
+sqlx = { version = "0.4.1", features = [ "mysql","runtime-tokio-native-tls" ] }
