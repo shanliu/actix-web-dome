@@ -8,6 +8,7 @@ use sqlx::mysql::MySqlRow;
 use sqlx::{Row, Error};
 use actix_redis::Command;
 use redis_async::{resp::RespValue, resp_array};
+use serde::export::Formatter;
 
 
 #[derive(Debug, Display, Error)]
@@ -38,10 +39,26 @@ pub struct AuthRequest {
    name: String,
 }
 
+#[derive(sqlx::FromRow)]
+struct Account {
+    id: i32,
+    name: String
+}
+
 
 #[get("/")]
 pub(crate) async fn index(web::Query(info):web::Query<AuthRequest>,data: web::Data<SiteSetting>) -> Result<HttpResponse,WebHandError> {
     let app_name = &data.app_name;
+
+    let mut stream = sqlx::query_as::<_, Account>(
+        "
+SELECT 'aa' as name, 1 as id
+        "
+    )
+        .fetch_one(&data.db).await?;
+
+
+   let b=format!("{}-{}",stream.name,stream.id);
 
     let row = sqlx::query_as("SELECT Fid,Frule_data from t_pm_valid_data_rule where Fid>=?")
         .bind(info.id as u32)
@@ -63,7 +80,7 @@ pub(crate) async fn index(web::Query(info):web::Query<AuthRequest>,data: web::Da
     })?;
 
     Ok(HttpResponse::Ok().json(MyObj {
-        name: format!("Hello {} {}!", brow.0,brow.1)
+        name: format!("Hello {} {} {}!", brow.0,brow.1,b)
     }))
 }
 
