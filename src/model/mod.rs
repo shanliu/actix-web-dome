@@ -1,4 +1,3 @@
-use derive_more::{Display, Error};
 pub(crate) mod account;
 
 pub(crate) type ModelResult<T> = sqlx::error::Result<T>;

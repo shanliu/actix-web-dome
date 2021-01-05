@@ -3,16 +3,14 @@ pub(crate) mod client;
 pub(crate) mod log;
 pub(crate) mod mysql;
 pub(crate) mod redis;
-use actix_web::{App, middleware, HttpServer, Result, web, guard, HttpResponse, error, error::ResponseError, HttpRequest, Responder, http::StatusCode};
+use actix_web::{Result, web,  HttpResponse, error::ResponseError, HttpRequest, Responder, http::StatusCode};
 use sqlx::{
     MySql,
     Pool
 };
-use actix::{Addr, MailboxError, ResponseFuture};
+use actix::{Addr, MailboxError};
 use actix_redis::RedisActor;
 use actix_files::NamedFile;
-use derive_more::{Display, Error};
-use crate::model::ModelResult;
 use serde::Serialize;
 use serde_json::{json, to_string_pretty};
 use futures::future::{ready,Ready};
@@ -97,7 +95,7 @@ impl Responder for WebJSONResult
 {
     type Error = WebHandError;
     type Future = Ready<Result<HttpResponse, WebHandError>>;
-    fn respond_to(self, req: &HttpRequest) -> Self::Future {
+    fn respond_to(self, _: &HttpRequest) -> Self::Future {
         ready(Ok(self.data))
     }
 }

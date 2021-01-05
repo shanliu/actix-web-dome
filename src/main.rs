@@ -2,16 +2,10 @@ use actix_web::{
     App,
     middleware,
     HttpServer,
-    Result,
-    web,
-    guard,
-    HttpResponse,
-    http::{
-        StatusCode
-}};
+    web
+};
 use sqlx::{
     MySql,
-    Pool,
     pool::PoolOptions
 };
 use actix_redis::RedisActor;
