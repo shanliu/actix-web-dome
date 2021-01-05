@@ -79,7 +79,7 @@ impl From<MailboxError> for WebHandError{
         return WebHandError::new(format!("{:?}",err))
     }
 }
-
+// 统一json输出对象
 pub struct WebJSONResult{
     data:HttpResponse
 }
