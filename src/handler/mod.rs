@@ -79,28 +79,28 @@ impl From<MailboxError> for WebHandError{
         return WebHandError::new(format!("{:?}",err))
     }
 }
-//
-// pub struct WebJSONResult{
-//     data:Box<dyn Serialize>
-// }
-// impl WebJSONResult{
-//     pub fn new<T:Serialize>(value:T)->Self{
-//         return WebJSONResult{
-//             data:Box::new(value)
-//         };
-//     }
-// }
-// impl Responder for WebJSONResult
-// {
-//     type Error = WebHandError;
-//     type Future = Ready<Result<HttpResponse, WebHandError>>;
-//     fn respond_to(self, req: &HttpRequest) -> Self::Future {
-//         ready(Ok(HttpResponse::Ok().json(json!({
-//             "status":0,
-//             "data":self.data
-//         }))))
-//     }
-// }
+
+pub struct WebJSONResult{
+    data:HttpResponse
+}
+impl WebJSONResult{
+    pub fn new<T:Serialize>(value:T)->Self{
+        return WebJSONResult{
+            data:HttpResponse::Ok().json(json!({
+                "status":0,
+                "data":value
+            }))
+        };
+    }
+}
+impl Responder for WebJSONResult
+{
+    type Error = WebHandError;
+    type Future = Ready<Result<HttpResponse, WebHandError>>;
+    fn respond_to(self, req: &HttpRequest) -> Self::Future {
+        ready(Ok(self.data))
+    }
+}
 
 //默认错误页面
 pub(crate) async fn p404() -> Result<NamedFile> {
