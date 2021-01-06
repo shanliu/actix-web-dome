@@ -42,6 +42,7 @@ async fn main() -> futures::io::Result<()> {
                 redis:redis_addr.clone()
             })
             .service(handlers::inoutput::index)
+            .service(handlers::inoutput::req)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())
