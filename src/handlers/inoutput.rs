@@ -2,7 +2,7 @@ use actix_web::{get, web};
 use serde::{Deserialize};
 use actix_web::{ Result};
 use serde_json::json;
-use crate::handler::{WebHandError, WebJSONResult};
+use crate::handlers::{WebHandError, WebJSONResult};
 
 #[derive(Deserialize)]
 pub struct AuthRequest {

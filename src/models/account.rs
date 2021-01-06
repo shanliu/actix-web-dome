@@ -1,4 +1,4 @@
-use crate::model::Model;
+use crate::models::Model;
 #[derive(sqlx::FromRow)]
 pub struct AccountModel {
     pub id: u32,

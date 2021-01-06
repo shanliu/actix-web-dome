@@ -1,6 +1,6 @@
-use crate::model::account::AccountModel;
+use crate::models::account::AccountModel;
 use sqlx::{MySql, Pool};
-use crate::model::ModelResult;
+use crate::models::ModelResult;
 
 pub struct AccountSerice<'a>{
     db:&'a Pool<MySql>

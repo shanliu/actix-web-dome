@@ -3,7 +3,7 @@ use crate::WebData;
 use serde_json::json;
 use actix_redis::Command;
 use redis_async::{ resp_array};
-use crate::handler::WebHandError;
+use crate::handlers::WebHandError;
 
 
 #[get("/redis/set/{key}/{val}")]

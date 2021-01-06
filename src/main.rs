@@ -11,11 +11,13 @@ use sqlx::{
 use actix_redis::RedisActor;
 use std::env;
 use dotenv::dotenv;
-use crate::handler::WebData;
+use crate::handlers::WebData;
+use crate::middlewares::user_check::CheckLogin;
 
-mod handler;
-mod model;
-mod service;
+mod handlers;
+mod models;
+mod services;
+mod middlewares;
 
 #[actix_web::main]
 async fn main() -> futures::io::Result<()> {
@@ -33,15 +35,16 @@ async fn main() -> futures::io::Result<()> {
     HttpServer::new(move||{
         App::new()
             .wrap(middleware::Logger::default())
+            .wrap(CheckLogin)
             .data(WebData {
                 app_name: String::from("Actix-web"),
                 db:pool.clone(),
                 redis:redis_addr.clone()
             })
-            .service(handler::inoutput::index)
-            .service(handler::mysql::index)
-            .service(handler::redis::index)
-            .default_service(web::resource("").route(web::get().to(handler::p404)))
+            .service(handlers::inoutput::index)
+            .service(handlers::mysql::index)
+            .service(handlers::redis::index)
+            .default_service(web::resource("").route(web::get().to(handlers::p404)))
     })
     .bind(format!("{}:{}",host,port))?
     .run()
