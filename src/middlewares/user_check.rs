@@ -1,7 +1,5 @@
 use std::task::{Context, Poll};
-
-use actix_service::{Service, Transform};
-use actix_web::dev::{ServiceRequest, ServiceResponse};
+use actix_web::dev::{ServiceRequest, ServiceResponse,Service, Transform};
 use actix_web::{Error, HttpResponse};
 use futures::future::{ok, Either, Ready};
 use serde_json::{json};
@@ -16,8 +14,8 @@ impl<S, B> Transform<S> for CheckLogin
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type InitError = ();
     type Transform = CheckLoginMiddleware<S>;
+    type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
