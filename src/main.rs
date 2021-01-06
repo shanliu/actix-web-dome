@@ -44,6 +44,7 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::inoutput::index)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
+            .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .default_service(web::resource("").route(web::get().to(handlers::p404)))
     })
     .bind(format!("{}:{}",host,port))?

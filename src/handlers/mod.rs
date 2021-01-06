@@ -100,6 +100,7 @@ impl Responder for WebJSONResult
     }
 }
 
+
 //默认错误页面
 pub(crate) async fn p404() -> Result<NamedFile> {
     Ok(NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND))
