@@ -48,6 +48,11 @@ impl ResponseError for WebHandError {
         web::HttpResponse::Ok().json(self)
     }
 }
+impl From<actix_web::Error> for WebHandError{
+    fn from(err:actix_web::Error) -> Self {
+        return WebHandError::new(format!("{:?}",err))
+    }
+}
 impl From<sqlx::Error> for WebHandError{
     fn from(err: sqlx::Error) -> Self {
         match err {
@@ -77,6 +82,7 @@ impl From<MailboxError> for WebHandError{
         return WebHandError::new(format!("{:?}",err))
     }
 }
+
 // 统一json输出对象
 pub struct WebJSONResult{
     data:HttpResponse

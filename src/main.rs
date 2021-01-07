@@ -18,6 +18,7 @@ mod handlers;
 mod models;
 mod services;
 mod middlewares;
+mod utils;
 
 #[actix_web::main]
 async fn main() -> futures::io::Result<()> {
@@ -42,7 +43,8 @@ async fn main() -> futures::io::Result<()> {
                 redis:redis_addr.clone()
             })
             .service(handlers::inoutput::index)
-            .service(handlers::inoutput::req)
+            .service(handlers::inoutput::query_get)
+            .service(handlers::inoutput::get)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())

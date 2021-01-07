@@ -6,7 +6,6 @@ use serde_json::json;
 use crate::handlers::WebHandError;
 use crate::services::account::AccountSerice;
 
-
 #[derive(Deserialize)]
 pub struct AuthRequest {
     id: u64
