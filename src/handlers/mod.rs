@@ -54,6 +54,11 @@ impl From<PayloadError> for WebHandError{
         return WebHandError::new(format!("{:?}",err))
     }
 }
+impl From<reqwest::Error> for WebHandError{
+    fn from(err:reqwest::Error) -> Self {
+        return WebHandError::new(format!("{:?}",err))
+    }
+}
 impl From<actix_web::Error> for WebHandError{
     fn from(err:actix_web::Error) -> Self {
         return WebHandError::new(format!("{:?}",err))
