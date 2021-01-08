@@ -48,10 +48,11 @@ pub(crate) async fn from(query: web::Form<GetParam1>) ->Result<WebJSONResult,Web
 }
 
 use futures::StreamExt;
+use actix_web::web::Buf;
 #[get("/payload")]
 pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
-    let resp = reqwest::get("https://httpbin.org/ip")
-        .await?;
+    // let resp = reqwest::get("https://httpbin.org/ip")
+    //     .await?;
 
 
     let mut bytes = web::BytesMut::new();
@@ -60,7 +61,8 @@ pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHa
         println!("Chunk: {:?}", &item);
         bytes.extend_from_slice(&item);
     }
+    let tmp=bytes.bytes();
     Ok(WebJSONResult::new(json!({
-        "ddd":bytes.into()
+        "ddd":String::from_utf8_lossy(tmp)
     })))
 }

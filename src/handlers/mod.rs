@@ -15,6 +15,7 @@ use serde::Serialize;
 use serde_json::{json, to_string_pretty};
 use futures::future::{ready,Ready};
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use actix_web::error::PayloadError;
 
 // 全局数据
 pub(crate) struct WebData {
@@ -46,6 +47,11 @@ impl ResponseError for WebHandError {
     // builds the actual response to send back when an error occurs
     fn error_response(&self) -> web::HttpResponse {
         web::HttpResponse::Ok().json(self)
+    }
+}
+impl From<PayloadError> for WebHandError{
+    fn from(err:PayloadError) -> Self {
+        return WebHandError::new(format!("{:?}",err))
     }
 }
 impl From<actix_web::Error> for WebHandError{
