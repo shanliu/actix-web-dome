@@ -1,9 +1,10 @@
-use actix_web::{get, web};
+use actix_web::{get,post, web};
 use serde::{Deserialize};
 use actix_web::{ Result};
 use serde_json::json;
 use crate::handlers::{WebHandError, WebJSONResult};
 use crate::utils::web_query::{QueryGetTrait, QueryGet};
+
 
 #[get("/")]
 pub(crate) async fn index() ->Result<WebJSONResult,WebHandError> {
@@ -13,7 +14,7 @@ pub(crate) async fn index() ->Result<WebJSONResult,WebHandError> {
 }
 
 
-
+//  curl  http://127.0.0.1:8080/query_get?id=1
 #[get("/query_get")]
 pub(crate) async fn query_get(query: web::Query<QueryGet>) ->Result<WebJSONResult,WebHandError> {
     let val=query.get_parse::<i32>("id")?;
@@ -26,6 +27,7 @@ pub(crate) async fn query_get(query: web::Query<QueryGet>) ->Result<WebJSONResul
 pub struct GetParam {
     id: u64
 }
+//  curl  http://127.0.0.1:8080/get?id=1
 #[get("/get")]
 pub(crate) async fn get(query: web::Query<GetParam>) ->Result<WebJSONResult,WebHandError> {
     Ok(WebJSONResult::new(json!({
@@ -37,9 +39,28 @@ pub(crate) async fn get(query: web::Query<GetParam>) ->Result<WebJSONResult,WebH
 pub struct GetParam1 {
     id: u64
 }
-#[get("/form")]
-pub(crate) async fn form(query: web::Form<GetParam1>) ->Result<WebJSONResult,WebHandError> {
+// curl -d 'id=1'  http://127.0.0.1:8080/from
+#[post("/from")]
+pub(crate) async fn from(query: web::Form<GetParam1>) ->Result<WebJSONResult,WebHandError> {
     Ok(WebJSONResult::new(json!({
         "ss":query.id
+    })))
+}
+
+use futures::StreamExt;
+#[get("/payload")]
+pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
+    let resp = reqwest::get("https://httpbin.org/ip")
+        .await?;
+
+
+    let mut bytes = web::BytesMut::new();
+    while let Some(item) = body.next().await {
+        let item = item?;
+        println!("Chunk: {:?}", &item);
+        bytes.extend_from_slice(&item);
+    }
+    Ok(WebJSONResult::new(json!({
+        "ddd":bytes.into()
     })))
 }
