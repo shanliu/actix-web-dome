@@ -4,6 +4,7 @@ pub(crate) mod log;
 pub(crate) mod mysql;
 pub(crate) mod redis;
 pub(crate) mod upload;
+pub(crate) mod ws;
 
 use actix_web::{Result, web,  HttpResponse, error::ResponseError, HttpRequest, Responder, http::StatusCode};
 use sqlx::{

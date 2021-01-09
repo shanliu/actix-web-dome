@@ -1,10 +1,4 @@
-use actix_web::{
-    App,
-    middleware,
-    HttpServer,
-    web,
-    guard
-};
+use actix_web::{App, middleware, HttpServer, web, guard, HttpResponse,error};
 use sqlx::{MySql, pool::PoolOptions, ConnectOptions};
 use actix_redis::RedisActor;
 use std::env;
@@ -40,10 +34,19 @@ async fn main() -> futures::io::Result<()> {
     let redis_addr = RedisActor::start(&redis_url);
     let host = env::var("HOST").unwrap();
     let port = env::var("PORT").unwrap();
+
+    let json_config = web::JsonConfig::default()
+        .limit(4096)
+        .error_handler(|err, _req| {
+            // create custom error response
+            error::InternalError::from_response(err, HttpResponse::Conflict().finish()).into()
+        });
+
     HttpServer::new(move||{
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(CheckLogin)
+            .app_data(json_config.clone())
             .data(WebData {
                 app_name: String::from("Actix-web"),
                 db:pool.clone(),
@@ -58,6 +61,7 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::inoutput::path)
             .service(handlers::upload::multipart_save)
             .service(handlers::upload::multipart_page)
+            .service(handlers::ws::index)
             .service(web::resource("/ruler/{path_url}")
                  .name("path_name") // <- set resource name, then it could be used in `url_for`
                  .guard(guard::Any(guard::Get())//过滤
