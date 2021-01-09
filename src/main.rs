@@ -2,7 +2,8 @@ use actix_web::{
     App,
     middleware,
     HttpServer,
-    web
+    web,
+    guard
 };
 use sqlx::{MySql, pool::PoolOptions, ConnectOptions};
 use actix_redis::RedisActor;
@@ -55,9 +56,19 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::inoutput::payload)
             .service(handlers::inoutput::json)
             .service(handlers::inoutput::path)
+            .service(handlers::upload::multipart_save)
+            .service(handlers::upload::multipart_page)
+            .service(web::resource("/ruler/{path_url}")
+                 .name("path_name") // <- set resource name, then it could be used in `url_for`
+                 .guard(guard::Any(guard::Get())//过滤
+                 //   .and(guard::Header("Content-Type", "plain/text"))
+                    .or(guard::Post())
+                 )
+                 .to(handlers::inoutput::ruler))
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())
+            .external_resource("baidu", "https://baidu.com/s/{key}")
             .default_service(web::resource("").route(web::get().to(handlers::p404)))
     })
     .bind(format!("{}:{}",host,port))?

@@ -1,4 +1,4 @@
-use actix_web::{get,post, web};
+use actix_web::{get, post, web, HttpRequest};
 use serde::{Deserialize};
 use actix_web::{ Result};
 use serde_json::json;
@@ -59,8 +59,14 @@ pub(crate) async fn json(info: web::Json<JSONParam>) ->Result<WebJSONResult,WebH
     })))
 }
 
+
+
 use actix_web::web::Buf;
 use futures::{StreamExt};
+
+
+
+//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload
 #[post("/payload")]
 pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
     let mut bytes = web::BytesMut::new();
@@ -76,31 +82,48 @@ pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHa
     })))
 }
 
-
+// curl http://127.0.0.1:8080/path/111?id=11
 #[get("/path/{id}")]
-pub(crate) async fn path(web::Path(id):web::Path<u32,>,query: web::Query<QueryGet>) ->Result<WebJSONResult,WebHandError> {
-    let val=query.get_string("id")?;
+pub(crate) async fn path(web::Path(id):web::Path<u32,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+    let url = req.url_for("baidu", &["fack"]).unwrap();
     Ok(WebJSONResult::new(json!({
         "path":id,
-        "id":val
+        "url":url.into_string()
     })))
 }
-
+// curl http://127.0.0.1:8080/ruler/111?id=11
+pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+    let url = req.url_for("path_name", &["myurl"]).unwrap();
+    Ok(WebJSONResult::new(json!({
+        "path":path_url,
+        "url":url.into_string()
+    })))
+}
 //
-//
+// use futures::{FutureExt};
+// use std::borrow::Borrow;
+// use std::sync::Arc;
 // use reqwest::Client;
-// use actix_multipart::Multipart;
-// use futures::{StreamExt, TryStreamExt};
-//
-// #[post("/multipart")]
-// pub(crate) async fn multipart(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
-//
-//     let client = Client::new();
-//     let builder = client.get("http://httpbin.org/get")
-//         .body(reqwest::Body::wrap_stream(body));
-//     let res=builder.send().await?.text().await?;
-//
+// #[post("/payload_requrl")]
+// pub(crate) async fn payload_requrl(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
+//    let (tx, mut rx) = tokio::sync::broadcast::channel::<String>(100);
+//    //let (tx1, mut rx1) = tokio::sync::mpsc::channel::<String>(100);
+//     tokio::task::spawn( async move {
+//         let client = Client::new();
+//         let tt :&'static _= &rx.recv().into_stream();
+//         let builder = client.get("http://httpbin.org/get")
+//             .body(reqwest::Body::wrap_stream(tt));
+//         let res=builder.send().await.unwrap().text().await.unwrap();
+//     //   tx1.send(res);
+//     });
+//     let mut bytes = web::BytesMut::new();
+//     while let Some(item) = body.next().await {
+//         let item = item.unwrap();
+//         let str=String::from_utf8(Vec::from(item.bytes())).unwrap();
+//         tx.send(str).unwrap();
+//     }
+//    // let res=rx1.recv().await.unwrap();
 //     Ok(WebJSONResult::new(json!({
-//         "ddd":res
+//         "ddd":"sss"
 //     })))
 // }
