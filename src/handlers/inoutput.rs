@@ -86,21 +86,38 @@ pub(crate) async fn path(web::Path(id):web::Path<u32,>,query: web::Query<QueryGe
     })))
 }
 
-//
-//
-// use reqwest::Client;
-// use actix_multipart::Multipart;
-// use futures::{StreamExt, TryStreamExt};
-//
-// #[post("/multipart")]
-// pub(crate) async fn multipart(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
-//
-//     let client = Client::new();
-//     let builder = client.get("http://httpbin.org/get")
-//         .body(reqwest::Body::wrap_stream(body));
-//     let res=builder.send().await?.text().await?;
-//
-//     Ok(WebJSONResult::new(json!({
-//         "ddd":res
-//     })))
-// }
+
+
+
+
+use reqwest::Client;
+use actix_multipart::Multipart;
+use futures::{TryStreamExt};
+
+#[post("/multipart")]
+pub(crate) async fn multipart(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
+
+    let (tx, mut rx) = tokio::sync::broadcast::channel::<String>(100);
+    tokio::task::spawn( async move {
+        let stream = async_stream::stream! {
+            while let Ok(value) = rx.recv().await {
+                yield std::io::Result::Ok(value);
+            }
+        };
+        
+        let client = Client::new();
+        let builder = client.get("http://httpbin.org/get")
+            .body(reqwest::Body::wrap_stream(stream));
+
+        let res = builder.send().await.unwrap().text().await.unwrap();
+
+        println!("{}",res);
+    });
+    let str="aaa".to_string();
+    tx.send(str).unwrap();
+    let str1="aaa1".to_string();
+    tx.send(str1).unwrap();
+    Ok(WebJSONResult::new(json!({
+
+    })))
+}
