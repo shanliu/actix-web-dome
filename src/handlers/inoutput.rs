@@ -59,8 +59,14 @@ pub(crate) async fn json(info: web::Json<JSONParam>) ->Result<WebJSONResult,WebH
     })))
 }
 
+
+
 use actix_web::web::Buf;
 use futures::{StreamExt};
+
+
+
+//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload
 #[post("/payload")]
 pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
     let mut bytes = web::BytesMut::new();
@@ -76,13 +82,21 @@ pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHa
     })))
 }
 
-
+// curl http://127.0.0.1:8080/path/111?id=11
 #[get("/path/{id}")]
-pub(crate) async fn path(web::Path(id):web::Path<u32,>,query: web::Query<QueryGet>) ->Result<WebJSONResult,WebHandError> {
-    let val=query.get_string("id")?;
+pub(crate) async fn path(web::Path(id):web::Path<u32,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+    let url = req.url_for("baidu", &["fack"]).unwrap();
     Ok(WebJSONResult::new(json!({
         "path":id,
-        "id":val
+        "url":url.into_string()
+    })))
+}
+// curl http://127.0.0.1:8080/ruler/111?id=11
+pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+    let url = req.url_for("path_name", &["myurl"]).unwrap();
+    Ok(WebJSONResult::new(json!({
+        "path":path_url,
+        "url":url.into_string()
     })))
 }
 
@@ -104,7 +118,7 @@ pub(crate) async fn multipart(mut body: Multipart) ->Result<WebJSONResult,WebHan
                 yield std::io::Result::Ok(value);
             }
         };
-        
+
         let client = Client::new();
         let builder = client.get("http://httpbin.org/get")
             .body(reqwest::Body::wrap_stream(stream));
