@@ -18,8 +18,22 @@ mod utils;
 #[actix_web::main]
 async fn main() -> futures::io::Result<()> {
     dotenv().ok();
-    let rust_log = env::var("RUST_LOG").unwrap();
-    std::env::set_var("RUST_LOG", rust_log);
+
+
+    let dir="logs";
+    let file_appender = tracing_appender::rolling::hourly(dir, "app.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    tracing_subscriber::fmt()
+        .compact()
+        .with_writer(non_blocking)
+        .with_writer(std::io::stdout)
+        // enable everything
+        .with_max_level(tracing::Level::ERROR)
+        // sets this to be the default, global collector for this application.
+        .init();
+
+
+
     let database_url = env::var("DATABASE_URL").unwrap();
     let mut option =MySqlConnectOptions::from_str(&database_url)
         .unwrap();
@@ -41,6 +55,8 @@ async fn main() -> futures::io::Result<()> {
             // create custom error response
             error::InternalError::from_response(err, HttpResponse::Conflict().finish()).into()
         });
+
+
 
     HttpServer::new(move||{
         App::new()
