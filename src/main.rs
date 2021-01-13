@@ -90,6 +90,7 @@ async fn main() -> futures::io::Result<()> {
                  )
                  .to(handlers::inoutput::ruler))
             .service(handlers::inoutput::session)
+            .service(handlers::inoutput::cookie)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())

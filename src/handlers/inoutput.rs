@@ -1,4 +1,4 @@
-use actix_web::{get,post, web,HttpRequest};
+use actix_web::{get, post, web, HttpRequest, HttpResponse};
 use serde::{Deserialize};
 use actix_web::{ Result};
 use serde_json::json;
@@ -12,6 +12,7 @@ use reqwest::Client;
 use actix_multipart::Multipart;
 use futures::{TryStreamExt};
 use actix_session::Session;
+use actix_web::cookie::Cookie;
 
 
 #[get("/")]
@@ -123,6 +124,26 @@ pub(crate) async fn session(session: Session,req: HttpRequest) ->Result<WebJSONR
     })))
 }
 
+// curl http://127.0.0.1:8080/cookie
+#[get("/cookie")]
+pub(crate) async fn cookie(req: HttpRequest) ->HttpResponse {
+
+
+
+    let cookie = Cookie::build("name", "value")
+       // .domain("www.rust-lang.org")
+       // .path("/")
+      //  .secure(true)
+      //  .http_only(true)
+        .finish();
+
+    HttpResponse::Ok().cookie(cookie).json(json!({
+        "status":0,
+        "data":{
+
+        }
+    }))
+}
 
 
 
