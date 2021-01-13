@@ -8,6 +8,7 @@ use crate::middlewares::user_check::CheckLogin;
 use log::LevelFilter;
 use sqlx::mysql::MySqlConnectOptions;
 use std::str::FromStr;
+use tracing_subscriber::EnvFilter;
 
 mod handlers;
 mod models;
@@ -24,13 +25,14 @@ async fn main() -> futures::io::Result<()> {
     let file_appender = tracing_appender::rolling::hourly(dir, "app.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::fmt()
-        .compact()
+        //.compact()//是否隐藏参数
         .with_writer(non_blocking)
         .with_writer(std::io::stdout)
-        // enable everything
-        .with_max_level(tracing::Level::ERROR)
-        // sets this to be the default, global collector for this application.
-        .init();
+        .with_max_level(tracing::Level::TRACE)
+        //.with_env_filter(EnvFilter::from_default_env().add_directive("echo=trace".parse()?))//手动分开配置方式
+        //.with_env_filter("async_fn=trace")//格式 模块:最大等级 mod:level
+        .try_init().unwrap();
+    //输出格式 span{args=3}:span{args=3}: mod::mod: message
 
 
 
@@ -85,6 +87,7 @@ async fn main() -> futures::io::Result<()> {
                     .or(guard::Post())
                  )
                  .to(handlers::inoutput::ruler))
+            .service(handlers::inoutput::session)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())

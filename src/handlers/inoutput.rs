@@ -91,12 +91,22 @@ pub(crate) async fn path(web::Path(id):web::Path<u32,>,req: HttpRequest) ->Resul
         "url":url.into_string()
     })))
 }
+
 // curl http://127.0.0.1:8080/ruler/111?id=11
 pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
     let url = req.url_for("path_name", &["myurl"]).unwrap();
     Ok(WebJSONResult::new(json!({
         "path":path_url,
         "url":url.into_string()
+    })))
+}
+
+
+// curl http://127.0.0.1:8080/session
+pub(crate) async fn session(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+
+    Ok(WebJSONResult::new(json!({
+
     })))
 }
 

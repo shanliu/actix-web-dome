@@ -10,30 +10,39 @@ edition = "2018"
 
 
 [dependencies]
+pin-project = "0.4"
 futures="0.3"
 futures-util="0.3.8"
+serde={ version = "1.0.118" }
+serde_json="1.0.61"
+dotenv = "0.15.0"
+
 tokio = "*"
+redis-async = "0.6.3"
+
 actix = "*"
 actix-web = "3"
 actix-files = "0.3"
 actix-session = "0.4"
 actix-multipart = "0.3"
 actix-web-actors = "*"
-pin-project = "0.4"
 actix-redis = "0.9"
 actix-utils = "2"
-redis-async = "0.6.3"
-serde={ version = "1.0.118" }
-serde_json="1.0.61"
-sqlx = { version = "0.4.1", features = [ "mysql","runtime-tokio-native-tls"] }
-dotenv = "0.15.0"
 
+#db
+sqlx = { version = "0.4.1", features = [ "mysql","runtime-tokio-native-tls"] }
+
+
+#客户端
 reqwest = { version = "0.11", features = ["json","stream"] }
 async-stream = "*"
-tracing = {version="0.1",features=["log-always"]}
-tracing-log="*"
-tracing-appender="*"
-log = "*"
-#env_logger = "0.8"
+log = "*" # 使用trace中宏 这里可以不要
 serde_urlencoded="0.7"
-tracing-subscriber = "0.2.0"
+
+#日志
+tracing = {version="0.1",features=["log"]}# log-always 保持log的输出 当使用tracing时会出现两次
+tracing-futures = { version = "*",features = ["futures-03"] }
+tracing-attributes ="*" #日志属性宏
+tracing-appender="*"#写日志文件
+tracing-serde ="*"#可序列化变量赋值
+tracing-subscriber = {version="0.2.0",features=["env-filter"]}
