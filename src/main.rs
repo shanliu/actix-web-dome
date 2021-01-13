@@ -27,6 +27,7 @@ async fn main() -> futures::io::Result<()> {
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::fmt()
         //.compact()//是否隐藏参数
+        .pretty()
         .with_writer(non_blocking)
         .with_writer(std::io::stdout)
         .with_max_level(tracing::Level::TRACE)
@@ -91,6 +92,8 @@ async fn main() -> futures::io::Result<()> {
                  .to(handlers::inoutput::ruler))
             .service(handlers::inoutput::session)
             .service(handlers::inoutput::cookie)
+            .service(handlers::inoutput::multipart1)
+            .service(handlers::inoutput::multipart2)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())

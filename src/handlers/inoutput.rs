@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, HttpRequest, HttpResponse};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, HttpMessage};
 use serde::{Deserialize};
 use actix_web::{ Result};
 use serde_json::json;
@@ -127,29 +127,54 @@ pub(crate) async fn session(session: Session,req: HttpRequest) ->Result<WebJSONR
 // curl http://127.0.0.1:8080/cookie
 #[get("/cookie")]
 pub(crate) async fn cookie(req: HttpRequest) ->HttpResponse {
-
-
-
-    let cookie = Cookie::build("name", "value")
+    let cookie:Cookie=req.cookie("nameq").unwrap_or(Cookie::new("nameq","hi"));
+    let cookie1 = Cookie::build("nameb", "value")
        // .domain("www.rust-lang.org")
        // .path("/")
-      //  .secure(true)
-      //  .http_only(true)
+        .secure(true)
+        .http_only(true)
         .finish();
-
-    HttpResponse::Ok().cookie(cookie).json(json!({
-        "status":0,
-        "data":{
-
-        }
-    }))
+    let cookie2=Cookie::new("bb","ccc");
+    let mut res =HttpResponse::Ok().json(json!({
+        "counter":cookie.value()
+    }));
+    res.add_cookie(&cookie);
+    res.add_cookie(&cookie1);
+    res.add_cookie(&cookie2);
+    res
 }
 
 
+#[post("/multipart1")]
+pub(crate) async fn multipart1(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
 
+    let (tx, mut rx) = tokio::sync::broadcast::channel::<String>(100);
+    tokio::task::spawn( async move {
+        let stream = async_stream::stream! {
+            while let Ok(value) = rx.recv().await {
+                yield std::io::Result::Ok(value);
+            }
+        };
 
-#[post("/multipart")]
-pub(crate) async fn multipart(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
+        let client = Client::new();
+        let builder = client.get("http://httpbin.org/get")
+            .body(reqwest::Body::wrap_stream(stream));
+
+        let res = builder.send().await.unwrap().text().await.unwrap();
+
+        println!("{}",res);
+    });
+    let str="aaa".to_string();
+    tx.send(str).unwrap();
+    let str1="aaa1".to_string();
+    tx.send(str1).unwrap();
+    Ok(WebJSONResult::new(json!({
+
+    })))
+}
+
+#[post("/multipart2")]
+pub(crate) async fn multipart2(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
 
     let (tx, mut rx) = tokio::sync::broadcast::channel::<String>(100);
     tokio::task::spawn( async move {
