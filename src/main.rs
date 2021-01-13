@@ -74,6 +74,7 @@ async fn main() -> futures::io::Result<()> {
                 redis:redis_addr.clone()
             })
             .service(handlers::inoutput::index)
+            .service(handlers::inoutput::usertype)
             .service(handlers::inoutput::query_get)
             .service(handlers::inoutput::get)
             .service(handlers::inoutput::from)
