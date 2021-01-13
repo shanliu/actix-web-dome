@@ -9,6 +9,7 @@ use log::LevelFilter;
 use sqlx::mysql::MySqlConnectOptions;
 use std::str::FromStr;
 use tracing_subscriber::EnvFilter;
+use actix_session::CookieSession;
 
 mod handlers;
 mod models;
@@ -64,6 +65,7 @@ async fn main() -> futures::io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(CheckLogin)
+            .wrap(CookieSession::signed(&[0; 32]).secure(false))
             .app_data(json_config.clone())
             .data(WebData {
                 app_name: String::from("Actix-web"),

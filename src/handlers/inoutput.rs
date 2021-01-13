@@ -4,6 +4,14 @@ use actix_web::{ Result};
 use serde_json::json;
 use crate::handlers::{WebHandError, WebJSONResult};
 use crate::utils::web_query::{QueryGetTrait, QueryGet};
+use actix_web::web::Buf;
+use futures::{StreamExt};
+
+
+use reqwest::Client;
+use actix_multipart::Multipart;
+use futures::{TryStreamExt};
+use actix_session::Session;
 
 
 #[get("/")]
@@ -61,9 +69,6 @@ pub(crate) async fn json(info: web::Json<JSONParam>) ->Result<WebJSONResult,WebH
 
 
 
-use actix_web::web::Buf;
-use futures::{StreamExt};
-
 
 
 //curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload
@@ -103,20 +108,24 @@ pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpReques
 
 
 // curl http://127.0.0.1:8080/session
-pub(crate) async fn session(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
-
+#[get("/session")]
+pub(crate) async fn session(session: Session,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+    let mut counter = 1;
+    if let Some(count) = session.get::<i32>("counter")? {
+        println!("SESSION value: {}", count);
+        counter = count + 1;
+        session.set("counter", counter)?;
+    } else {
+        session.set("counter", counter)?;
+    }
     Ok(WebJSONResult::new(json!({
-
+        "counter":counter
     })))
 }
 
 
 
 
-
-use reqwest::Client;
-use actix_multipart::Multipart;
-use futures::{TryStreamExt};
 
 #[post("/multipart")]
 pub(crate) async fn multipart(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
