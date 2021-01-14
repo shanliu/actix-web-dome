@@ -8,7 +8,6 @@ use crate::middlewares::user_check::CheckLogin;
 use log::LevelFilter;
 use sqlx::mysql::MySqlConnectOptions;
 use std::str::FromStr;
-use tracing_subscriber::EnvFilter;
 use actix_session::CookieSession;
 
 mod handlers;
@@ -21,21 +20,21 @@ mod utils;
 async fn main() -> futures::io::Result<()> {
     dotenv().ok();
 
-
-    let dir="logs";
-    let file_appender = tracing_appender::rolling::hourly(dir, "app.log");
+    let log_level = env::var("LOG_LEVEL").unwrap();
+    let dir = env::var("LOG_DIR").unwrap();
+    let name = env::var("LOG_NAME").unwrap();
+    let file_appender = tracing_appender::rolling::hourly(dir, name);
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::fmt()
         //.compact()//是否隐藏参数
-        .pretty()
+       // .pretty()
         .with_writer(non_blocking)
         .with_writer(std::io::stdout)
         .with_max_level(tracing::Level::TRACE)
         //.with_env_filter(EnvFilter::from_default_env().add_directive("echo=trace".parse()?))//手动分开配置方式
-        //.with_env_filter("async_fn=trace")//格式 模块:最大等级 mod:level
+        .with_env_filter(log_level)//格式 模块:最大等级 mod:level
         .try_init().unwrap();
     //输出格式 span{args=3}:span{args=3}: mod::mod: message
-
 
 
     let database_url = env::var("DATABASE_URL").unwrap();

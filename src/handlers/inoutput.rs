@@ -4,16 +4,16 @@ use actix_web::{ Result};
 use serde_json::json;
 use crate::handlers::{WebHandError, WebJSONResult};
 use crate::utils::web_query::{QueryGetTrait, QueryGet};
-use actix_web::web::Buf;
+use actix_web::web::{Buf, Bytes};
 use futures::{StreamExt};
 
-use futures_util::future::{ok, err, Ready};
+use futures_util::future::{ok, Ready};
 use reqwest::Client;
 use actix_multipart::Multipart;
 use futures::{TryStreamExt};
 use actix_session::Session;
 use actix_web::cookie::Cookie;
-use actix_web::error::ErrorBadRequest;
+use actix_web::error::{PayloadError};
 
 
 #[get("/")]
@@ -134,7 +134,7 @@ pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpReques
 
 // curl http://127.0.0.1:8080/session
 #[get("/session")]
-pub(crate) async fn session(session: Session,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+pub(crate) async fn session(session: Session) ->Result<WebJSONResult,WebHandError> {
     let mut counter = 1;
     if let Some(count) = session.get::<i32>("counter")? {
         println!("SESSION value: {}", count);
@@ -162,42 +162,42 @@ pub(crate) async fn cookie(req: HttpRequest) ->HttpResponse {
     let mut res =HttpResponse::Ok().json(json!({
         "counter":cookie.value()
     }));
-    res.add_cookie(&cookie);
-    res.add_cookie(&cookie1);
-    res.add_cookie(&cookie2);
+    let r=res.add_cookie(&cookie);
+    r.unwrap();
+    let r=res.add_cookie(&cookie1);
+    r.unwrap();
+    let r=res.add_cookie(&cookie2);
+    r.unwrap();
     res
 }
 
-
-#[post("/multipart1")]
-pub(crate) async fn multipart1(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
-
-    // let (tx, mut rx) = tokio::sync::broadcast::channel::<actix_web::web::Bytes>(100);
-    // tokio::task::spawn( async move {
-    //     let stream = async_stream::stream! {
-    //         while let Ok(value) = rx.recv().await {
-    //             yield std::io::Result::Ok(value);
-    //         }
-    //     };
-    //
-    //     let res=actix_web::client::Client::new()
-    //         .post("http://baidu.com")
-    //         .send_stream(stream)
-    //         ;
-    //     println!("{}",res.await.unwrap().body().await.unwrap().to_vec().into());
-    // });
-    // let str="aaa".to_string();
-    // tx.send(str.into()).unwrap();
-    // let str1="aaa1".to_string();
-    // tx.send(str1.into()).unwrap();
+//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/multipart1
+#[get("/multipart1")]
+pub(crate) async fn multipart1( body: web::Payload) ->Result<WebJSONResult,WebHandError> {
+    let res=actix_web::client::Client::new()
+        .post("http://127.0.0.1")
+        .send_stream(body
+            .map(|e|->Result<Bytes,PayloadError>{
+                match e {
+                    Ok(e)=>return Ok(e),
+                    Err(e)=>{
+                        tracing::error!("{:?}",e);
+                        return Ok(Bytes::from(format!("{:?}",e)))
+                    }
+                }
+            })
+        )
+        ;
+    let b=res.await;
+    println!("{:?}",String::from_utf8(b.unwrap().body().await.unwrap().to_vec()));
     Ok(WebJSONResult::new(json!({
 
     })))
 }
 
+//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/multipart2
 #[post("/multipart2")]
-pub(crate) async fn multipart2(mut body: Multipart) ->Result<WebJSONResult,WebHandError> {
-
+pub(crate) async fn multipart2(mut payload1: Multipart) ->Result<WebJSONResult,WebHandError> {
     let (tx, mut rx) = tokio::sync::broadcast::channel::<String>(100);
     tokio::task::spawn( async move {
         let stream = async_stream::stream! {
@@ -205,19 +205,22 @@ pub(crate) async fn multipart2(mut body: Multipart) ->Result<WebJSONResult,WebHa
                 yield std::io::Result::Ok(value);
             }
         };
-
         let client = Client::new();
         let builder = client.get("http://httpbin.org/get")
             .body(reqwest::Body::wrap_stream(stream));
-
         let res = builder.send().await.unwrap().text().await.unwrap();
-
         println!("{}",res);
     });
-    let str="aaa".to_string();
-    tx.send(str).unwrap();
-    let str1="aaa1".to_string();
-    tx.send(str1).unwrap();
+    while let Ok(Some(mut field)) = payload1.try_next().await {
+
+        while let Some(chunk) = field.next().await {
+            let data = chunk.unwrap();
+
+            unsafe {
+                tx.send(String::from_utf8_unchecked(data.to_vec())).unwrap();
+            }
+        }
+    }
     Ok(WebJSONResult::new(json!({
 
     })))
