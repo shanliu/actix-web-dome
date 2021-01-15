@@ -26,17 +26,19 @@ pub(crate) async fn multipart_save(mut payload: Multipart) -> Result<WebJSONResu
     while let Ok(Some(mut field)) = payload.try_next().await {
         let content_type = field.content_disposition().unwrap();
         let filename = content_type.get_filename().unwrap();
+        tracing::info!(%filename);
         let filename=String::from(html_escape::decode_html_entities(filename));
         let filepath = format!("./logs/{}", &filename);
         // File::create is blocking operation, use threadpool
         let mut f = web::block(|| std::fs::File::create(filepath))
             .await
             .unwrap();
-
+        let mut bad =None;
         // Field in turn is stream of *Bytes* object
         while let Some(chunk) = field.next().await {
             if chunk.is_err() {
-                tracing::error!("{:?}",chunk);
+                tracing::error!("{:?}",&chunk);
+                bad=Some(chunk);
                 break;
             }
             //文件从网络得到,并在这里开始写
@@ -56,6 +58,10 @@ pub(crate) async fn multipart_save(mut payload: Multipart) -> Result<WebJSONResu
             };
             // filesystem operations are blocking, we have to use threadpool
             f = web::block(tt).await.unwrap();//重新在这里得到f的所有权
+        }
+        if bad.is_some() {
+            let _bad=bad.unwrap();
+            return Err(WebHandError::new(format!("{:?}",_bad)));
         }
     }
     Ok(WebJSONResult::new(json!({

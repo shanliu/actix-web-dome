@@ -97,6 +97,18 @@ impl From<MailboxError> for WebHandError{
     }
 }
 
+pub(crate) trait HttpResponseOKJSON{
+    fn json<T:Serialize>(value:T)->HttpResponse;
+}
+impl HttpResponseOKJSON for HttpResponse{
+    fn json<T:Serialize>(value:T)->HttpResponse{
+        HttpResponse::Ok().json(json!({
+            "status":0,
+            "data":value
+        }))
+    }
+}
+
 // 统一json输出对象
 pub struct WebJSONResult{
     data:HttpResponse

@@ -4,17 +4,12 @@ use actix_web::{ Result};
 use serde_json::json;
 use crate::handlers::{WebHandError, WebJSONResult};
 use crate::utils::web_query::{QueryGetTrait, QueryGet};
-use actix_web::web::{Buf, Bytes};
+use actix_web::web::{Buf};
 use futures::{StreamExt};
 
 use futures_util::future::{ok, Ready};
-use reqwest::Client;
-use actix_multipart::Multipart;
-use futures::{TryStreamExt};
 use actix_session::Session;
 use actix_web::cookie::Cookie;
-use actix_web::error::{PayloadError};
-
 
 #[get("/")]
 pub(crate) async fn index() ->Result<WebJSONResult,WebHandError> {
@@ -171,57 +166,23 @@ pub(crate) async fn cookie(req: HttpRequest) ->HttpResponse {
     res
 }
 
-//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/multipart1
-#[get("/multipart1")]
-pub(crate) async fn multipart1( body: web::Payload) ->Result<WebJSONResult,WebHandError> {
-    let res=actix_web::client::Client::new()
-        .post("http://127.0.0.1")
-        .send_stream(body
-            .map(|e|->Result<Bytes,PayloadError>{
-                match e {
-                    Ok(e)=>return Ok(e),
-                    Err(e)=>{
-                        tracing::error!("{:?}",e);
-                        return Ok(Bytes::from(format!("{:?}",e)))
-                    }
-                }
-            })
-        )
-        ;
-    let b=res.await;
-    println!("{:?}",String::from_utf8(b.unwrap().body().await.unwrap().to_vec()));
-    Ok(WebJSONResult::new(json!({
+use crate::handlers::HttpResponseOKJSON;
 
-    })))
-}
 
-//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/multipart2
-#[post("/multipart2")]
-pub(crate) async fn multipart2(mut payload1: Multipart) ->Result<WebJSONResult,WebHandError> {
-    let (tx, mut rx) = tokio::sync::broadcast::channel::<String>(100);
-    tokio::task::spawn( async move {
-        let stream = async_stream::stream! {
-            while let Ok(value) = rx.recv().await {
-                yield std::io::Result::Ok(value);
-            }
-        };
-        let client = Client::new();
-        let builder = client.get("http://httpbin.org/get")
-            .body(reqwest::Body::wrap_stream(stream));
-        let res = builder.send().await.unwrap().text().await.unwrap();
-        println!("{}",res);
-    });
-    while let Ok(Some(mut field)) = payload1.try_next().await {
 
-        while let Some(chunk) = field.next().await {
-            let data = chunk.unwrap();
-
-            unsafe {
-                tx.send(String::from_utf8_unchecked(data.to_vec())).unwrap();
-            }
-        }
+//curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload1?id=11
+#[post("/payload1")]
+pub(crate) async fn payload1(mut body: web::Payload,query: web::Query<QueryGet>) ->Result<HttpResponse,Error> {
+    let val=query.get_parse::<i32>("id")?;
+    let mut bytes = web::BytesMut::new();
+    while let Some(item) = body.next().await {
+        let item = item.map_err(Error::from)?;
+        println!("Chunk: {:?}", &item);
+        bytes.extend_from_slice(&item);
     }
-    Ok(WebJSONResult::new(json!({
-
+    let str=String::from_utf8(Vec::from(bytes.bytes())).unwrap();
+    Ok(HttpResponse::json(json!({
+        "str":str,
+        "val":val
     })))
 }
