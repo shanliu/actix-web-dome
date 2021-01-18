@@ -28,10 +28,11 @@ async fn main() -> futures::io::Result<()> {
     tracing_subscriber::fmt()
         //.compact()//是否隐藏参数
        // .pretty()
-        .with_writer(non_blocking)
-        .with_writer(std::io::stdout)
+       // .with_writer(non_blocking)//只能有一个writer
+        .with_writer(std::io::stdout)//只能有一个writer
         .with_max_level(tracing::Level::TRACE)
         //.with_env_filter(EnvFilter::from_default_env().add_directive("echo=trace".parse()?))//手动分开配置方式
+        // 基于span过滤 target[span{field=value}]=level
         .with_env_filter(log_level)//格式 模块:最大等级 mod:level
         .try_init().unwrap();
     //输出格式 span{args=3}:span{args=3}: mod::mod: message
