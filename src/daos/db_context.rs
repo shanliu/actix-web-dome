@@ -10,8 +10,7 @@ pub struct Table<'r,T>
         T: FromRow<'r, MySqlRow>,
 {
     pub pool: Arc<MySqlPool>,
-    _from_row: fn(&'r MySqlRow) -> Result<T, sqlx::Error>,
-    _marker: std::marker::PhantomData<&'r T>,
+    _from_row: fn(&'r MySqlRow) -> Result<T, sqlx::Error>
 }
 
 impl<'r, T> Table<'r,T>
@@ -21,8 +20,7 @@ impl<'r, T> Table<'r,T>
     pub fn new(pool: Arc<MySqlPool>) -> Self {
         Table {
             pool,
-            _from_row: T::from_row,
-            _marker: Default::default()
+            _from_row: T::from_row
         }
     }
 }
