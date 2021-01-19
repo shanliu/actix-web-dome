@@ -38,13 +38,13 @@ impl<'c> Table<'c, Account> {
     //     })?;
     // }
 
-
+    #[allow(dead_code)]
     pub async fn drop_table(&self) -> Result<MySqlDone> {
         sqlx::query("DROP TABLE IF EXISTS users;")
             .execute(&*self.pool)
             .await
     }
-
+    #[allow(dead_code)]
     pub async fn create_table(&self) -> Result<MySqlDone> {
         sqlx::query(
             r#"
@@ -58,7 +58,7 @@ impl<'c> Table<'c, Account> {
             .execute(&*self.pool)
             .await
     }
-
+    #[allow(dead_code)]
     pub async fn get_user_by_id(&self, user_id: &str) -> Result<Account> {
         sqlx::query_as(
             r#"
@@ -70,7 +70,7 @@ impl<'c> Table<'c, Account> {
             .fetch_one(&*self.pool)
             .await
     }
-
+    #[allow(dead_code)]
     pub async fn add_user(&self, user: &Account) -> Result<MySqlDone> {
         sqlx::query(
             r#"
@@ -82,7 +82,7 @@ impl<'c> Table<'c, Account> {
             .execute(&*self.pool)
             .await
     }
-
+    #[allow(dead_code)]
     pub async fn update_user(&self, user: &Account) -> Result<MySqlDone> {
         sqlx::query(
             r#"
@@ -96,7 +96,7 @@ impl<'c> Table<'c, Account> {
             .execute(&*self.pool)
             .await
     }
-
+    #[allow(dead_code)]
     pub async fn delete_user(&self, user_id: &str) -> Result<MySqlDone> {
         sqlx::query(
             r#"

@@ -25,10 +25,10 @@ use crate::daos::Database;
 
 // 全局数据
 
-pub struct AppState<'a> {
-    pub context: Arc<Database<'a>>,
+pub struct AppState<'c> {
+    pub context: Arc<Database<'c>>,
     pub app_name: String,
-    pub db:Pool<MySql>,
+    pub db_pool:Pool<MySql>,
     pub redis:Addr<RedisActor>
 }
 

@@ -67,7 +67,7 @@ async fn main() -> futures::io::Result<()> {
     let webdata=web::Data::new(AppState {
         context:Arc::new(db_context),
         app_name: String::from("Actix-web"),
-        db:pool.clone(),
+        db_pool:pool.clone(),
         redis:redis_addr.clone()
     });
 
