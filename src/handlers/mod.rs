@@ -20,8 +20,13 @@ use futures::future::{ready,Ready};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use actix_web::error::PayloadError;
 
+use std::sync::{Arc};
+use crate::daos::Database;
+
 // 全局数据
-pub(crate) struct WebData {
+
+pub struct AppState<'a> {
+    pub context: Arc<Database<'a>>,
     pub app_name: String,
     pub db:Pool<MySql>,
     pub redis:Addr<RedisActor>

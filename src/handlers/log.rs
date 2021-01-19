@@ -1,7 +1,7 @@
-use actix_web::{get, post, web, HttpResponse};
+use actix_web::{get,  HttpResponse};
 use std::{error::Error, io};
 use tracing::{debug, error, info, span, trace, warn, Level,Instrument,trace_span};
-use std::{net::SocketAddr};
+
 
 //curl  http://localhost:8080/log
 #[get("/log")]
@@ -14,7 +14,7 @@ pub(crate) async fn log1()->HttpResponse{
     };
     t.instrument(trace_span!("inasync")).await;//span 定义公共前缀
     let b=connect().await;
-
+    println!("{:?}",b);
     shave_all(10);
     HttpResponse::Ok().finish()
 }

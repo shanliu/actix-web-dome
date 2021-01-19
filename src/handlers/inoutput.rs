@@ -169,7 +169,6 @@ pub(crate) async fn cookie(req: HttpRequest) ->HttpResponse {
 use crate::handlers::HttpResponseOKJSON;
 
 
-
 //curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload1?id=11
 #[post("/payload1")]
 pub(crate) async fn payload1(mut body: web::Payload,query: web::Query<QueryGet>) ->Result<HttpResponse,Error> {

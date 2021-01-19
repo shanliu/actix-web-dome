@@ -1,11 +1,14 @@
+use serde::{Deserialize, Serialize};
+use sqlx::{FromRow};
 use crate::models::Model;
-#[derive(sqlx::FromRow)]
-pub struct AccountModel {
+
+#[derive(FromRow,Serialize, Deserialize, Clone)]
+pub struct Account {
     pub id: u32,
     pub name: String
 }
-impl Model for AccountModel{}
-impl AccountModel{
+impl Model for Account{}
+impl Account{
     pub fn show_name(&self)->String{
         return format!("{}-{}",self.name,self.id);
     }

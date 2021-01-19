@@ -3,16 +3,18 @@ use sqlx::{MySql, pool::PoolOptions, ConnectOptions};
 use actix_redis::RedisActor;
 use std::env;
 use dotenv::dotenv;
-use crate::handlers::WebData;
 use crate::middlewares::user_check::CheckLogin;
 use log::LevelFilter;
 use sqlx::mysql::MySqlConnectOptions;
 use std::str::FromStr;
 use actix_session::CookieSession;
+use crate::handlers::AppState;
+use std::sync::{Arc};
+use crate::daos::{Database};
 
 mod handlers;
 mod models;
-mod services;
+mod daos;
 mod middlewares;
 mod utils;
 
@@ -21,10 +23,10 @@ async fn main() -> futures::io::Result<()> {
     dotenv().ok();
 
     let log_level = env::var("LOG_LEVEL").unwrap();
-    let dir = env::var("LOG_DIR").unwrap();
-    let name = env::var("LOG_NAME").unwrap();
-    let file_appender = tracing_appender::rolling::hourly(dir, name);
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+  //  let dir = env::var("LOG_DIR").unwrap();
+ //   let name = env::var("LOG_NAME").unwrap();
+   // let file_appender = tracing_appender::rolling::hourly(dir, name);
+  //  let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::fmt()
         //.compact()//是否隐藏参数
        // .pretty()
@@ -37,7 +39,6 @@ async fn main() -> futures::io::Result<()> {
         .try_init().unwrap();
     //输出格式 span{args=3}:span{args=3}: mod::mod: message
 
-
     let database_url = env::var("DATABASE_URL").unwrap();
     let mut option =MySqlConnectOptions::from_str(&database_url)
         .unwrap();
@@ -48,6 +49,10 @@ async fn main() -> futures::io::Result<()> {
         option.to_owned()
         )
         .await.unwrap();
+
+    let db_context = Database::new(pool.clone()).await;
+
+
     let redis_url = env::var("REDIS_URL").unwrap();
     let redis_addr = RedisActor::start(&redis_url);
     let host = env::var("HOST").unwrap();
@@ -59,20 +64,20 @@ async fn main() -> futures::io::Result<()> {
             // create custom error response
             error::InternalError::from_response(err, HttpResponse::Conflict().finish()).into()
         });
-
-
+    let webdata=web::Data::new(AppState {
+        context:Arc::new(db_context),
+        app_name: String::from("Actix-web"),
+        db:pool.clone(),
+        redis:redis_addr.clone()
+    });
 
     HttpServer::new(move||{
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(CheckLogin)
             .wrap(CookieSession::signed(&[0; 32]).secure(false))
-            .app_data(json_config.clone())
-            .data(WebData {
-                app_name: String::from("Actix-web"),
-                db:pool.clone(),
-                redis:redis_addr.clone()
-            })
+            .data(json_config.clone())//每个线程独立数据
+            .app_data(webdata.clone())//每个线程共享数据
             .service(handlers::inoutput::index)
             .service(handlers::inoutput::usertype)
             .service(handlers::inoutput::query_get)
@@ -103,6 +108,7 @@ async fn main() -> futures::io::Result<()> {
             .external_resource("baidu", "https://baidu.com/s/{key}")
             .default_service(web::resource("").route(web::get().to(handlers::p404)))
     })
+    .workers(4)
     .bind(format!("{}:{}",host,port))?
     .run()
     .await
