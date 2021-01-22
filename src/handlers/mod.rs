@@ -5,6 +5,7 @@ pub(crate) mod mysql;
 pub(crate) mod redis;
 pub(crate) mod upload;
 pub(crate) mod ws;
+pub(crate) mod tpl;
 
 use actix_web::{Result, web,  HttpResponse, error::ResponseError, HttpRequest, Responder, http::StatusCode};
 use sqlx::{
@@ -69,6 +70,11 @@ impl From<reqwest::Error> for WebHandError{
 }
 impl From<actix_web::Error> for WebHandError{
     fn from(err:actix_web::Error) -> Self {
+        return WebHandError::new(format!("{:?}",err))
+    }
+}
+impl From<tera::Error> for WebHandError{
+    fn from(err:tera::Error) -> Self {
         return WebHandError::new(format!("{:?}",err))
     }
 }

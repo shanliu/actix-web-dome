@@ -49,6 +49,9 @@ tracing-appender="*"#写日志文件
 tracing-serde ="*"#可序列化变量赋值
 tracing-subscriber = {version="0.2.0",features=["env-filter"]}
 
+#模板
+tera = "1.0"
+
 #graylog 使用
 #tracing-gelf = "0.4"
 #tracing-log="*"

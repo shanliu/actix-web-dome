@@ -11,6 +11,7 @@ use actix_session::CookieSession;
 use crate::handlers::AppState;
 use std::sync::{Arc};
 use crate::daos::{Database};
+use tera::Tera;
 
 mod handlers;
 mod models;
@@ -77,10 +78,15 @@ async fn main() -> futures::io::Result<()> {
     });
 
     HttpServer::new(move||{
+
+        let tera =
+            Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/templates/**/*")).unwrap();
+
         App::new()
             .wrap(middleware::Logger::default())
             .wrap(CheckLogin)
             .wrap(CookieSession::signed(&[0; 32]).secure(false))
+            .data(tera)//每个线程独立数据
             .data(json_config.clone())//每个线程独立数据
             .app_data(webdata.clone())//每个线程共享数据
             .service(handlers::inoutput::index)
@@ -109,6 +115,7 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::client::multipart2)
             .service(handlers::mysql::index)
             .service(handlers::redis::index)
+            .service(handlers::tpl::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .external_resource("baidu", "https://baidu.com/s/{key}")
             .default_service(web::resource("").route(web::get().to(handlers::p404)))
