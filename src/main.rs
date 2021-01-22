@@ -39,6 +39,11 @@ async fn main() -> futures::io::Result<()> {
         .try_init().unwrap();
     //输出格式 span{args=3}:span{args=3}: mod::mod: message
 
+    // tracing_log::LogTracer::builder().with_max_level(log::LevelFilter::Debug).init().unwrap();
+    // let address: std::net::SocketAddr = "127.0.0.1:12201".parse().unwrap();
+    // let bg_task = tracing_gelf::Logger::builder().init_tcp(address).unwrap();
+    // actix_web::rt::spawn(bg_task);
+
     let database_url = env::var("DATABASE_URL").unwrap();
     let mut option =MySqlConnectOptions::from_str(&database_url)
         .unwrap();

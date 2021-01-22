@@ -42,8 +42,13 @@ serde_urlencoded="0.7"
 
 #日志
 tracing = {version="0.1",features=["log"]}# log-always 保持log的输出 当使用tracing时会出现两次
+
 tracing-futures = { version = "*",features = ["futures-03"] }
 tracing-attributes ="*" #日志属性宏
 tracing-appender="*"#写日志文件
 tracing-serde ="*"#可序列化变量赋值
 tracing-subscriber = {version="0.2.0",features=["env-filter"]}
+
+#graylog 使用
+#tracing-gelf = "0.4"
+#tracing-log="*"
