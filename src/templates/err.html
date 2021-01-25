@@ -5,6 +5,7 @@
     <title>{{ name }}</title>
 </head>
 <body>
-<h1>{{ name }} {{ text }}</h1>
+<h1>{{ name }} {{ text }}{{name | default(name=1.0)}}</h1>
+I would like to read more {{ "" | default (value="Louise Michel") }}!
 </body>
 </html>
