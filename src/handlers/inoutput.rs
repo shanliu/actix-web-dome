@@ -8,18 +8,18 @@ use actix_web::web::{Buf};
 use futures::{StreamExt};
 
 use futures_util::future::{ok, Ready};
-use actix_session::Session;
 use actix_web::cookie::Cookie;
 
 #[get("/")]
-pub(crate) async fn index() ->Result<WebJSONResult,WebHandError> {
-    Ok(WebJSONResult::new(json!({
-        "say":"hi"
-    })))
+pub(crate) async fn index() ->Result<HttpResponse> {
+    Ok(HttpResponse::from(HttpResponse::Ok()))
+    // Ok(WebJSONResult::new(json!({
+    //     "say":"hi"
+    // })))
 }
 
-
-//  curl  http://127.0.0.1:8080/query_get?id=1
+//
+// //  curl  http://127.0.0.1:8080/query_get?id=1
 #[get("/query_get")]
 pub(crate) async fn query_get(query: web::Query<QueryGet>) ->Result<WebJSONResult,WebHandError> {
     let val=query.get_parse::<i32>("id")?;
@@ -32,7 +32,7 @@ pub(crate) async fn query_get(query: web::Query<QueryGet>) ->Result<WebJSONResul
 pub struct GetParam {
     id: u32
 }
-//  curl  http://127.0.0.1:8080/get?val=aaaaa
+//  curl  http://127.0.0.1:8080/get?id=111
 #[get("/get")]
 pub(crate) async fn get(query: web::Query<GetParam>) ->Result<WebJSONResult,WebHandError> {
     Ok(WebJSONResult::new(json!({
@@ -92,56 +92,56 @@ pub(crate) async fn usertype(supplied_thing: Option<Thing>) ->Result<WebJSONResu
 }
 
 //curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload
-#[post("/payload")]
-pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
-    let mut bytes = web::BytesMut::new();
-    while let Some(item) = body.next().await {
-        let item = item?;
-        println!("Chunk: {:?}", &item);
-        bytes.extend_from_slice(&item);
-    }
-    let str=String::from_utf8(Vec::from(bytes.bytes())).unwrap();
-    // let str:std::borrow::Cow<str>=String::from_utf8_lossy(bytes.bytes());
-    Ok(WebJSONResult::new(json!({
-        "ddd":str
-    })))
-}
+// #[post("/payload")]
+// pub(crate) async fn payload(mut body: web::Payload) ->Result<WebJSONResult,WebHandError> {
+//     let mut bytes = web::BytesMut::new();
+//     while let Some(item) = body.next().await {
+//         let item = item?;
+//         println!("Chunk: {:?}", &item);
+//         bytes.extend_from_slice(&item);
+//     }
+//     let str=String::from_utf8(Vec::from(bytes.bytes())).unwrap();
+//     // let str:std::borrow::Cow<str>=String::from_utf8_lossy(bytes.bytes());
+//     Ok(WebJSONResult::new(json!({
+//         "ddd":str
+//     })))
+// }
 
 // curl http://127.0.0.1:8080/path/111?id=11
-#[get("/path/{id}")]
-pub(crate) async fn path(web::Path(id):web::Path<u32,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
-    let url = req.url_for("baidu", &["fack"]).unwrap();
-    Ok(WebJSONResult::new(json!({
-        "path":id,
-        "url":url.into_string()
-    })))
-}
+// #[get("/path/{id}")]
+// pub(crate) async fn path(web::Path(id):web::Path<u32,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+//     let url = req.url_for("baidu", &["fack"]).unwrap();
+//     Ok(WebJSONResult::new(json!({
+//         "path":id,
+//         "url":url.into_string()
+//     })))
+// }
 
 // curl http://127.0.0.1:8080/ruler/111?id=11
-pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
-    let url = req.url_for("path_name", &["myurl"]).unwrap();
-    Ok(WebJSONResult::new(json!({
-        "path":path_url,
-        "url":url.into_string()
-    })))
-}
+// pub(crate) async fn ruler(web::Path(path_url):web::Path<String,>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
+//     let url = req.url_for("path_name", &["myurl"]).unwrap();
+//     Ok(WebJSONResult::new(json!({
+//         "path":path_url,
+//         "url":url.into_string()
+//     })))
+// }
 
 
 // curl http://127.0.0.1:8080/session
-#[get("/session")]
-pub(crate) async fn session(session: Session) ->Result<WebJSONResult,WebHandError> {
-    let mut counter = 1;
-    if let Some(count) = session.get::<i32>("counter")? {
-        println!("SESSION value: {}", count);
-        counter = count + 1;
-        session.set("counter", counter)?;
-    } else {
-        session.set("counter", counter)?;
-    }
-    Ok(WebJSONResult::new(json!({
-        "counter":counter
-    })))
-}
+// #[get("/session")]
+// pub(crate) async fn session(session: Session) ->Result<WebJSONResult,WebHandError> {
+//     let mut counter = 1;
+//     if let Some(count) = session.get::<i32>("counter")? {
+//         println!("SESSION value: {}", count);
+//         counter = count + 1;
+//         session.set("counter", counter)?;
+//     } else {
+//         session.set("counter", counter)?;
+//     }
+//     Ok(WebJSONResult::new(json!({
+//         "counter":counter
+//     })))
+// }
 
 // curl http://127.0.0.1:8080/cookie
 #[get("/cookie")]
@@ -170,18 +170,18 @@ use crate::handlers::HttpResponseOKJSON;
 
 
 //curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload1?id=11
-#[post("/payload1")]
-pub(crate) async fn payload1(mut body: web::Payload,query: web::Query<QueryGet>) ->Result<HttpResponse,Error> {
-    let val=query.get_parse::<i32>("id")?;
-    let mut bytes = web::BytesMut::new();
-    while let Some(item) = body.next().await {
-        let item = item.map_err(Error::from)?;
-        println!("Chunk: {:?}", &item);
-        bytes.extend_from_slice(&item);
-    }
-    let str=String::from_utf8(Vec::from(bytes.bytes())).unwrap();
-    Ok(HttpResponse::json(json!({
-        "str":str,
-        "val":val
-    })))
-}
+// #[post("/payload1")]
+// pub(crate) async fn payload1(mut body: web::Payload,query: web::Query<QueryGet>) ->Result<HttpResponse,Error> {
+//     let val=query.get_parse::<i32>("id")?;
+//     let mut bytes = web::BytesMut::new();
+//     while let Some(item) = body.next().await {
+//         let item = item.map_err(Error::from)?;
+//         println!("Chunk: {:?}", &item);
+//         bytes.extend_from_slice(&item);
+//     }
+//     let str=String::from_utf8(Vec::from(bytes.bytes())).unwrap();
+//     Ok(HttpResponse::json(json!({
+//         "str":str,
+//         "val":val
+//     })))
+// }

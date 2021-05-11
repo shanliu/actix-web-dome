@@ -1,7 +1,7 @@
 #cargo-features = ['named-profiles']
 [package]
-name = "untitled"
-version = "0.1.0"
+name = "actix-web-dome"
+version = "0.0.1"
 authors = ["liushan <shan.liu@msn.com>"]
 edition = "2018"
 
@@ -10,47 +10,47 @@ edition = "2018"
 
 
 [dependencies]
-pin-project = "0.4"
+pin-project = "1.0.*"
 futures="0.3"
-futures-util="0.3.8"
-serde={ version = "1.0.118" }
-serde_json="1.0.61"
+futures-util="0.3.*"
+serde={ version = "1.0.*" }
+serde_json="1.0.*"
 dotenv = "0.15.0"
 
-tokio = "*"
-redis-async = "0.6.3"
+tokio = "1.*"
+redis-async = "0.9.*"
 
-actix="0.*"
-actix-web = "3.3.*"
-actix-files = "0.3"
-actix-session = "0.4"
-actix-multipart = "0.3"
-actix-web-actors = "*"
-actix-redis = "0.9"
-actix-utils = "2"
+actix="~0.11.*"
+actix-web = "~4.0.0-beta.6"
+actix-multipart = "~0.4.0-beta.4"
+actix-utils = "~3.0.0"
+#actix-redis = "0.10.0-beta.1"
+#actix-files = "0.6.0-beta.4"
+#actix-session = "0.5.0-beta.1"
+#actix-web-actors = "4.0.0-beta.4"
 
 #db
-sqlx = { version = "0.4.1", features = [ "mysql","runtime-tokio-native-tls"] }
+sqlx = { version = "~0.5.2", features = [ "mysql","runtime-tokio-native-tls","offline"] }
 
-html-escape="*"
+html-escape="~0.2.*"
 
 #客户端
-reqwest = { version = "0.11", features = ["json","stream"] }
+reqwest = { version = "~0.11.*", features = ["json","stream"] }
 async-stream = "*"
 log = "*" # 使用trace中宏 这里可以不要
 serde_urlencoded="0.7"
 
 #日志
-tracing = {version="0.1",features=["log"]}# log-always 保持log的输出 当使用tracing时会出现两次
+tracing = {version="0.1.*",features=["log"]}# log-always 保持log的输出 当使用tracing时会出现两次
 
-tracing-futures = { version = "*",features = ["futures-03"] }
+tracing-futures = { version = "~0.2.*",features = ["futures-03"] }
 tracing-attributes ="*" #日志属性宏
 tracing-appender="*"#写日志文件
 tracing-serde ="*"#可序列化变量赋值
 tracing-subscriber = {version="0.2.0",features=["env-filter"]}
 
 #模板
-tera = "1.0"
+tera = "1.8"
 
 #graylog 使用
 #tracing-gelf = "0.4"

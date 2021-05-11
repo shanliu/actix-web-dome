@@ -2,9 +2,9 @@ pub(crate) mod inoutput;
 pub(crate) mod client;
 pub(crate) mod log;
 pub(crate) mod mysql;
-pub(crate) mod redis;
-pub(crate) mod upload;
-pub(crate) mod ws;
+// pub(crate) mod redis;
+// pub(crate) mod upload;
+// pub(crate) mod ws;
 pub(crate) mod tpl;
 
 use actix_web::{Result, web,  HttpResponse, error::ResponseError, HttpRequest, Responder, http::StatusCode};
@@ -12,9 +12,9 @@ use sqlx::{
     MySql,
     Pool
 };
-use actix::{Addr, MailboxError};
-use actix_redis::RedisActor;
-use actix_files::NamedFile;
+use actix::{Addr, MailboxError, Response};
+// use actix_redis::RedisActor;
+// use actix_files::NamedFile;
 use serde::Serialize;
 use serde_json::{json, to_string_pretty};
 use futures::future::{ready,Ready};
@@ -22,16 +22,18 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use actix_web::error::PayloadError;
 
 use std::sync::{Arc};
-use crate::daos::Database;
+use crate::daos::Dao;
+use actix_web::body::Body;
 
 // 全局数据
 
 pub struct AppState<'c> {
-    pub context: Arc<Database<'c>>,
+    pub context: Arc<Dao<'c>>,
     pub app_name: String,
     pub db_pool:Pool<MySql>,
-    pub redis:Addr<RedisActor>
+    //pub redis:Addr<RedisActor>
 }
+
 
 //统一错误
 #[derive(Debug,Serialize)]
@@ -53,10 +55,6 @@ impl Display for WebHandError {
     }
 }
 impl ResponseError for WebHandError {
-    // builds the actual response to send back when an error occurs
-    fn error_response(&self) -> web::HttpResponse {
-        web::HttpResponse::Ok().json(self)
-    }
 }
 impl From<PayloadError> for WebHandError{
     fn from(err:PayloadError) -> Self {
@@ -82,18 +80,6 @@ impl From<sqlx::Error> for WebHandError{
     fn from(err: sqlx::Error) -> Self {
         match err {
             sqlx::Error::RowNotFound=>{
-                return WebHandError::new("结果不存在".to_string())
-            },
-            _err@_ => {
-                return WebHandError::new(format!("{:?}",_err))
-            },
-        }
-    }
-}
-impl From<actix_redis::Error> for WebHandError{
-    fn from(err:actix_redis::Error) -> Self {
-        match err {
-            actix_redis::Error::NotConnected=>{
                 return WebHandError::new("结果不存在".to_string())
             },
             _err@_ => {
@@ -136,15 +122,13 @@ impl WebJSONResult{
 }
 impl Responder for WebJSONResult
 {
-    type Error = WebHandError;
-    type Future = Ready<Result<HttpResponse, WebHandError>>;
-    fn respond_to(self, _: &HttpRequest) -> Self::Future {
-        ready(Ok(self.data))
+    fn respond_to(self, _: &HttpRequest) ->HttpResponse {
+        self.data
     }
 }
 
 
 //默认错误页面
-pub(crate) async fn p404() -> Result<NamedFile> {
-    Ok(NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND))
-}
+// pub(crate) async fn p404() -> Result<NamedFile> {
+//     Ok(NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND))
+// }

@@ -1,16 +1,15 @@
 use actix_web::{App, middleware, HttpServer, web, guard, HttpResponse,error};
 use sqlx::{MySql, pool::PoolOptions, ConnectOptions};
-use actix_redis::RedisActor;
+// use actix_redis::RedisActor;
 use std::env;
 use dotenv::dotenv;
-use crate::middlewares::user_check::CheckLogin;
+// use crate::middlewares::user_check::CheckLogin;
 use log::LevelFilter;
 use sqlx::mysql::MySqlConnectOptions;
 use std::str::FromStr;
-use actix_session::CookieSession;
 use crate::handlers::AppState;
 use std::sync::{Arc};
-use crate::daos::{Database};
+use crate::daos::{ Dao};
 use tera::Tera;
 
 mod handlers;
@@ -24,6 +23,7 @@ async fn main() -> futures::io::Result<()> {
     dotenv().ok();
 
     let log_level = env::var("LOG_LEVEL").unwrap();
+
   //  let dir = env::var("LOG_DIR").unwrap();
  //   let name = env::var("LOG_NAME").unwrap();
    // let file_appender = tracing_appender::rolling::hourly(dir, name);
@@ -56,25 +56,25 @@ async fn main() -> futures::io::Result<()> {
         )
         .await.unwrap();
 
-    let db_context = Database::new(pool.clone()).await;
+    let db_context = Dao::new(pool.clone()).await;
 
 
-    let redis_url = env::var("REDIS_URL").unwrap();
-    let redis_addr = RedisActor::start(&redis_url);
+   // let redis_url = env::var("REDIS_URL").unwrap();
+   // let redis_addr = RedisActor::start(&redis_url);
     let host = env::var("HOST").unwrap();
     let port = env::var("PORT").unwrap();
 
-    let json_config = web::JsonConfig::default()
-        .limit(4096)
-        .error_handler(|err, _req| {
-            // create custom error response
-            error::InternalError::from_response(err, HttpResponse::Conflict().finish()).into()
-        });
+    // let json_config = web::JsonConfig::default()
+    //     .limit(4096)
+    //     .error_handler(|err, _req| {
+    //         // create custom error response
+    //         error::InternalError::from_response(err, HttpResponse::Conflict().finish()).into()
+    //     });
     let webdata=web::Data::new(AppState {
         context:Arc::new(db_context),
         app_name: String::from("Actix-web"),
         db_pool:pool.clone(),
-        redis:redis_addr.clone()
+        //redis:redis_addr.clone()
     });
 
     HttpServer::new(move||{
@@ -84,41 +84,42 @@ async fn main() -> futures::io::Result<()> {
 
         App::new()
             .wrap(middleware::Logger::default())
-            .wrap(CheckLogin)
-            .wrap(CookieSession::signed(&[0; 32]).secure(false))
+            // .wrap(CheckLogin)
+            // .wrap(CookieSession::signed(&[0; 32]).secure(false))
             .data(tera)//每个线程独立数据
-            .data(json_config.clone())//每个线程独立数据
+            // .data(json_config.clone())//每个线程独立数据
             .app_data(webdata.clone())//每个线程共享数据
             .service(handlers::inoutput::index)
             .service(handlers::inoutput::usertype)
             .service(handlers::inoutput::query_get)
             .service(handlers::inoutput::get)
             .service(handlers::inoutput::from)
-            .service(handlers::inoutput::payload)
+            // .service(handlers::inoutput::payload)
             .service(handlers::inoutput::json)
-            .service(handlers::inoutput::path)
-            .service(handlers::upload::multipart_save)
-            .service(handlers::upload::multipart_page)
-            .service(handlers::log::log1)
-            .service(handlers::ws::index)
-            .service(web::resource("/ruler/{path_url}")
-                 .name("path_name") // <- set resource name, then it could be used in `url_for`
-                 .guard(guard::Any(guard::Get())//过滤
-                 //   .and(guard::Header("Content-Type", "plain/text"))
-                    .or(guard::Post())
-                 )
-                 .to(handlers::inoutput::ruler))
-            .service(handlers::inoutput::session)
-            .service(handlers::inoutput::cookie)
-            .service(handlers::inoutput::payload1)
-            .service(handlers::client::multipart1)
-            .service(handlers::client::multipart2)
+            // .service(handlers::inoutput::path)
+            // .service(handlers::upload::multipart_save)
+            // .service(handlers::upload::multipart_page)
+            // .service(handlers::log::log1)
+          //  .service(handlers::ws::index)
+          //   .service(web::resource("/ruler/{path_url}")
+          //        .name("path_name") // <- set resource name, then it could be used in `url_for`
+          //        .guard(guard::Any(guard::Get())//过滤
+          //        //   .and(guard::Header("Content-Type", "plain/text"))
+          //           .or(guard::Post())
+          //        )
+          //        .to(handlers::inoutput::ruler))
+          //   .service(handlers::inoutput::session)
+          //   .service(handlers::inoutput::cookie)
+            // .service(handlers::inoutput::payload1)
+            // .service(handlers::client::multipart1)
+            // .service(handlers::client::multipart2)
             .service(handlers::mysql::index)
-            .service(handlers::redis::index)
-            .service(handlers::tpl::index)
-            .service(actix_files::Files::new("/static", "./static").show_files_listing())
+            .service(handlers::mysql::index1)
+          //  .service(handlers::redis::index)
+          //   .service(handlers::tpl::index)
+            // .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .external_resource("baidu", "https://baidu.com/s/{key}")
-            .default_service(web::resource("").route(web::get().to(handlers::p404)))
+            // .default_service(web::resource("").route(web::get().to(handlers::p404)))
     })
     .workers(4)
     .bind(format!("{}:{}",host,port))?

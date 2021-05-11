@@ -1,0 +1,41 @@
+{
+  "db": "MySQL",
+  "aa3154447b7a5fad7b7f747651a526061c351062aef74b445ce0db405eb44d45": {
+    "query": "\n                   SELECT id,customer_surname from orders_list where id=?\n                ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": {
+            "type": "Short",
+            "flags": {
+              "bits": 553
+            },
+            "char_set": 63,
+            "max_size": 5
+          }
+        },
+        {
+          "ordinal": 1,
+          "name": "customer_surname",
+          "type_info": {
+            "type": "VarString",
+            "flags": {
+              "bits": 0
+            },
+            "char_set": 224,
+            "max_size": 120
+          }
+        }
+      ],
+      "parameters": {
+        "Right": 1
+      },
+      "nullable": [
+        false,
+        true
+      ]
+    }
+  }
+}
