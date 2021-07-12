@@ -4,6 +4,9 @@ use crate::handlers::{WebJSONResult, WebHandError};
 use serde_json::json;
 use std::io::Write;
 use futures::{StreamExt, TryStreamExt};
+use crate::handlers::{ProgramError};
+use std::path::{Path};
+
 
 
 
@@ -30,9 +33,15 @@ pub(crate) async fn multipart_save(mut payload: Multipart) -> Result<WebJSONResu
         let filename=String::from(html_escape::decode_html_entities(filename));
         let filepath = format!("./logs/{}", &filename);
         // File::create is blocking operation, use threadpool
-        let mut f = web::block(|| std::fs::File::create(filepath))
+        let _filepath=filepath.clone();
+        let mut f = web::block(|| std::fs::File::create(_filepath))
             .await
-            .unwrap();
+            .unwrap()
+            .map_err(|e| ProgramError::Io {
+                source: e,
+                path: Path::new(filepath.clone().as_str()).to_path_buf(),
+            })
+            ?;
         let mut bad =None;
         // Field in turn is stream of *Bytes* object
         while let Some(chunk) = field.next().await {
@@ -57,7 +66,7 @@ pub(crate) async fn multipart_save(mut payload: Multipart) -> Result<WebJSONResu
                 // return Result::Ok(f);
             };
             // filesystem operations are blocking, we have to use threadpool
-            f = web::block(tt).await.unwrap();//重新在这里得到f的所有权
+            f = web::block(tt).await.unwrap().unwrap();//重新在这里得到f的所有权
         }
         if bad.is_some() {
             let _bad=bad.unwrap();

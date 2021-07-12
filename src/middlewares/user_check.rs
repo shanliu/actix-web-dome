@@ -6,9 +6,9 @@ use serde_json::{json};
 
 pub struct CheckLogin;
 
-impl<S, B> Transform<S> for CheckLogin
+impl<S, B> Transform<S, Req> for CheckLogin
     where
-        S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+        S: Service< Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
         S::Future: 'static,
 {
     type Request = ServiceRequest;

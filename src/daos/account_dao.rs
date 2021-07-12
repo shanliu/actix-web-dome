@@ -7,15 +7,31 @@ use sqlx::Row;
 impl<'c> Table<'c, Account> {
 
     pub async fn find_by_id(&self,user_id:u32)->Result<Account>{
+        
         return sqlx::query_as::<_, Account>(
             r#"
-                SELECT Fid as id,Fserial_no as name from t_pm_product where Fserial_no=?
+                SELECT  id,'' as name,'dd' as tt from orders_list where id=?
             "#
         )
-        .bind("ZY0101191223000008")
+        .bind(user_id)
         .fetch_one(&*self.pool)
         .await;
 
+    }
+    pub async fn find_by_id1(&self,user_id:u32){
+        // let b=
+        //     sqlx::query_as!(Account,r#"select id,customer_surname as "name?" from orders_list where customer_surname=?"#,&"aaa")
+        //     .fetch_all(&*self.pool)
+        //     .await.unwrap();
+        // for a in b{
+        //     println!("{}",a.id);
+        //     println!("{}",a.id);
+        // }
+        //
+        // let t=b.len();
+        // let tstr=t.to_string();
+        
+        
     }
     pub async fn test(&self){
 
@@ -69,7 +85,8 @@ impl<'c> Table<'c, Account> {
             })
             .fetch_all(&*self.pool)
             .await.unwrap();
-
+        let len=account.len();
+        
         println!("{}",account.len());
         for a  in account {
             println!("{:?}",a);
@@ -107,6 +124,18 @@ impl<'c> Table<'c, Account> {
 
     pub async fn get_user_by_id(&self, user_id: &str)->Result<Account> {
 
+        // let a=sqlx::query_as!(Account,
+        //         r#"
+        //            SELECT id,customer_surname as "name?" from orders_list where id=? and 1
+        //         "#,
+        //         user_id.parse::<i32>().unwrap()
+        //     )
+        //     .fetch_one(&*self.pool)
+        //     .await;
+        //
+        // return a;
+
+
         // let a=sqlx::query!(
         //         r#"
         //            SELECT id,customer_surname from orders_list where id=? and 1
@@ -116,14 +145,14 @@ impl<'c> Table<'c, Account> {
         //     .fetch_one(&*self.pool)
         //     .await?;
         //
-        // Result::Ok(Account{
-        //     id: a.id as u32,
-        //     name: (a.customer_surname as Option<String>).unwrap_or("".to_string())
-        // })
-        Result::Ok(Account{
+        // return Result::Ok(Account{
+        //     id: a.id,
+        //     name: Some(a.customer_surname)
+        // });
+        return Result::Ok(Account{
             id: 1,
-            name:"".to_string()
-        })
+            name:None
+        });
     }
     #[allow(dead_code)]
     pub async fn add_user(&self, user: &Account) -> Result<MySqlQueryResult> {

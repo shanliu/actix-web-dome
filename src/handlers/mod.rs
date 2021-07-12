@@ -2,9 +2,9 @@ pub(crate) mod inoutput;
 pub(crate) mod client;
 pub(crate) mod log;
 pub(crate) mod mysql;
-// pub(crate) mod redis;
-// pub(crate) mod upload;
-// pub(crate) mod ws;
+pub(crate) mod redis;
+pub(crate) mod upload;
+pub(crate) mod ws;
 pub(crate) mod tpl;
 
 use actix_web::{Result, web,  HttpResponse, error::ResponseError, HttpRequest, Responder, http::StatusCode};
@@ -13,8 +13,8 @@ use sqlx::{
     Pool
 };
 use actix::{Addr, MailboxError, Response};
-// use actix_redis::RedisActor;
-// use actix_files::NamedFile;
+use actix_redis::RedisActor;
+use actix_files::NamedFile;
 use serde::Serialize;
 use serde_json::{json, to_string_pretty};
 use futures::future::{ready,Ready};
@@ -24,6 +24,8 @@ use actix_web::error::PayloadError;
 use std::sync::{Arc};
 use crate::daos::Dao;
 use actix_web::body::Body;
+use std::error::Error;
+
 
 // 全局数据
 
@@ -31,7 +33,7 @@ pub struct AppState<'c> {
     pub context: Arc<Dao<'c>>,
     pub app_name: String,
     pub db_pool:Pool<MySql>,
-    //pub redis:Addr<RedisActor>
+    pub redis:Addr<RedisActor>
 }
 
 
@@ -49,6 +51,15 @@ impl WebHandError{
         };
     }
 }
+use std::path::{PathBuf};
+use custom_error::custom_error;
+custom_error! {ProgramError
+    Io {
+        source: std::io::Error,
+        path: PathBuf
+    } = @{format!("{path}: {source}", source=source, path=path.display())},
+}
+
 impl Display for WebHandError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", to_string_pretty(self).unwrap())
@@ -58,6 +69,16 @@ impl ResponseError for WebHandError {
 }
 impl From<PayloadError> for WebHandError{
     fn from(err:PayloadError) -> Self {
+        return WebHandError::new(format!("{:?}",err))
+    }
+}
+impl From<std::io::Error> for WebHandError{
+    fn from(err:std::io::Error) -> Self {
+        return WebHandError::new(format!("{:?}",err))
+    }
+}
+impl From<ProgramError> for WebHandError{
+    fn from(err:ProgramError) -> Self {
         return WebHandError::new(format!("{:?}",err))
     }
 }
@@ -129,6 +150,6 @@ impl Responder for WebJSONResult
 
 
 //默认错误页面
-// pub(crate) async fn p404() -> Result<NamedFile> {
-//     Ok(NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND))
-// }
+pub(crate) async fn p404() -> Result<NamedFile> {
+    Ok(NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND))
+}
