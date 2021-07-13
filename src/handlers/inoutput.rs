@@ -7,15 +7,18 @@ use crate::utils::web_query::{QueryGetTrait, QueryGet};
 use actix_web::web::{Buf};
 use futures::{StreamExt};
 
-use futures_util::future::{ok, Ready};
+
 use actix_web::cookie::Cookie;
 
+use crate::handlers::HttpResponseOKJSON;
+use actix_session::Session;
+
+
 #[get("/")]
-pub(crate) async fn index() ->Result<HttpResponse> {
-    Ok(HttpResponse::from(HttpResponse::Ok()))
-    // Ok(WebJSONResult::new(json!({
-    //     "say":"hi"
-    // })))
+pub(crate) async fn index()  ->Result<WebJSONResult,WebHandError>{
+    Ok(WebJSONResult::new(json!({
+        "say":"hi"
+    })))
 }
 
 //
@@ -63,8 +66,8 @@ pub(crate) async fn json(info: web::Json<JSONParam>) ->Result<WebJSONResult,WebH
         "ss":info.id
     })))
 }
-
-
+// 自定义解析数据
+use futures_util::future::{ok, Ready};
 #[derive(Debug, Deserialize)]
 pub(crate) struct Thing {
     name: String
@@ -73,7 +76,6 @@ impl FromRequest for Thing {
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();
-
     fn from_request(req: &HttpRequest, _payload: &mut dev::Payload) -> Self::Future {
         ok(Thing { name: req.method().as_str().to_string() })
     }
@@ -116,6 +118,17 @@ pub(crate) async fn path(id:web::Path<u32>,req: HttpRequest) ->Result<WebJSONRes
         "url":url.into_string()
     })))
 }
+
+// curl http://127.0.0.1:8080/pathmore/111/111?id=11
+#[get("/pathmore/{path_name}/{path_name1}")]
+pub(crate) async fn pathmore(path_url:web::Path<(String,String)>) ->Result<WebJSONResult,WebHandError> {
+    let (a,b)=path_url.into_inner();
+    Ok(WebJSONResult::new(json!({
+        "aa":a.to_string(),
+        "bb":b.to_string()
+    })))
+}
+
 
 // curl http://127.0.0.1:8080/ruler/111?id=11
 pub(crate) async fn ruler(path_url:web::Path<String>,req: HttpRequest) ->Result<WebJSONResult,WebHandError> {
@@ -166,8 +179,6 @@ pub(crate) async fn cookie(req: HttpRequest) ->HttpResponse {
     res
 }
 
-use crate::handlers::HttpResponseOKJSON;
-use actix_session::Session;
 
 
 //curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/payload1?id=11

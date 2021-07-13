@@ -81,6 +81,7 @@ async fn main() -> futures::io::Result<()> {
         redis:redis_addr.clone()
     });
 
+
     HttpServer::new(move||{
 
         let tera =
@@ -101,6 +102,7 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::inoutput::payload)
             .service(handlers::inoutput::json)
             .service(handlers::inoutput::path)
+            .service(handlers::inoutput::pathmore)
             .service(handlers::upload::multipart_save)
             .service(handlers::upload::multipart_page)
             .service(handlers::log::log1)
@@ -117,16 +119,19 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::client::multipart2)
             .service(handlers::mysql::index)
             .service(handlers::mysql::index1)
-           .service(handlers::redis::index)
+            .service(handlers::redis::index)
             // .service(handlers::client::multipart1)
             .service(handlers::inoutput::session)
             .service(handlers::tpl::index)
             .service(actix_files::Files::new("/static", "./static").show_files_listing())
             .external_resource("baidu", "https://baidu.com/s/{key}")
-            // .default_service(web::resource("").route(web::get().to(handlers::p404)))
+            .default_service(web::to(handlers::p404))
     })
     .workers(4)
     .bind(format!("{}:{}",host,port))?
     .run()
     .await
+
+
+
 }

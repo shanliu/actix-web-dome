@@ -25,6 +25,8 @@ use std::sync::{Arc};
 use crate::daos::Dao;
 use actix_web::body::Body;
 use std::error::Error;
+use std::path::{PathBuf};
+use custom_error::custom_error;
 
 
 // 全局数据
@@ -36,6 +38,12 @@ pub struct AppState<'c> {
     pub redis:Addr<RedisActor>
 }
 
+custom_error! {ProgramError
+    Io {
+        source: std::io::Error,
+        path: PathBuf
+    } = @{format!("{path}: {source}", source=source, path=path.display())},
+}
 
 //统一错误
 #[derive(Debug,Serialize)]
@@ -50,14 +58,6 @@ impl WebHandError{
             message:msg.to_string()
         };
     }
-}
-use std::path::{PathBuf};
-use custom_error::custom_error;
-custom_error! {ProgramError
-    Io {
-        source: std::io::Error,
-        path: PathBuf
-    } = @{format!("{path}: {source}", source=source, path=path.display())},
 }
 
 impl Display for WebHandError {
