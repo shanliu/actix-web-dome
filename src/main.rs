@@ -1,3 +1,9 @@
+mod handlers;
+mod models;
+mod daos;
+mod middlewares;
+mod utils;
+
 use actix_web::{App, middleware, HttpServer, web, guard, HttpResponse,error};
 use sqlx::{MySql, pool::PoolOptions, ConnectOptions};
 use actix_redis::RedisActor;
@@ -7,19 +13,13 @@ use dotenv::dotenv;
 use log::LevelFilter;
 use sqlx::mysql::MySqlConnectOptions;
 use std::str::FromStr;
-use crate::handlers::AppState;
+use handlers::AppState;
 use std::sync::{Arc};
-use crate::daos::{ Dao};
+use daos::{Dao};
 use tera::Tera;
 use actix_web::web::Data;
-use actix::Addr;
 use actix_session::CookieSession;
 
-mod handlers;
-mod models;
-mod daos;
-mod middlewares;
-mod utils;
 
 #[actix_web::main]
 async fn main() -> futures::io::Result<()> {
@@ -81,8 +81,7 @@ async fn main() -> futures::io::Result<()> {
         redis:redis_addr.clone()
     });
 
-
-    HttpServer::new(move||{
+    let server=HttpServer::new(move||{
 
         let tera =
             Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/templates/**/*")).unwrap();
@@ -117,8 +116,10 @@ async fn main() -> futures::io::Result<()> {
             .service(handlers::inoutput::cookie)
             .service(handlers::inoutput::payload1)
             .service(handlers::client::multipart2)
+            .service(handlers::client::morereq)
             .service(handlers::mysql::index)
             .service(handlers::mysql::index1)
+            .service(handlers::mysql::index2)
             .service(handlers::redis::index)
             // .service(handlers::client::multipart1)
             .service(handlers::inoutput::session)
@@ -129,9 +130,7 @@ async fn main() -> futures::io::Result<()> {
     })
     .workers(4)
     .bind(format!("{}:{}",host,port))?
-    .run()
-    .await
-
-
-
+    .run();
+    server.await?;
+    Ok({})
 }

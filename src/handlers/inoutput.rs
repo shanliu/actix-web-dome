@@ -1,16 +1,16 @@
-use actix_web::{get, post,dev, web, Error,HttpRequest, HttpResponse, HttpMessage, FromRequest};
+use actix_web::{get, post,dev, web, Error,HttpRequest, HttpResponse, FromRequest};
 use serde::{Deserialize};
 use actix_web::{ Result};
 use serde_json::json;
-use crate::handlers::{WebHandError, WebJSONResult};
-use crate::utils::web_query::{QueryGetTrait, QueryGet};
-use actix_web::web::{Buf};
+use super::{WebHandError, WebJSONResult};
+use super::super::utils::web_query::{QueryGetTrait, QueryGet};
+
 use futures::{StreamExt};
 
 
 use actix_web::cookie::Cookie;
 
-use crate::handlers::HttpResponseOKJSON;
+use super::super::handlers::HttpResponseOKJSON;
 use actix_session::Session;
 
 
@@ -115,7 +115,7 @@ pub(crate) async fn path(id:web::Path<u32>,req: HttpRequest) ->Result<WebJSONRes
     let url = req.url_for("baidu", &["fack"]).unwrap();
     Ok(WebJSONResult::new(json!({
         "path":id.into_inner(),
-        "url":url.into_string()
+        "url":url.to_string()
     })))
 }
 
@@ -135,7 +135,7 @@ pub(crate) async fn ruler(path_url:web::Path<String>,req: HttpRequest) ->Result<
     let url = req.url_for("path_name", &["myurl"]).unwrap();
     Ok(WebJSONResult::new(json!({
         "path":path_url.as_str(),
-        "url":url.into_string()
+        "url":url.to_string()
     })))
 }
 

@@ -1,5 +1,5 @@
 use actix_web::{get, web, HttpResponse};
-use crate::handlers::WebHandError;
+use super::WebHandError;
 
 
 #[get("/tpl")]

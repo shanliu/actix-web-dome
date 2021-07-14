@@ -1,9 +1,12 @@
 use super::Table;
 use sqlx::mysql::{MySqlQueryResult, MySqlRow};
-use crate::models::account::Account;
-use crate::models::Result;
+use super::super::models::account::Account;
+use super::super::models::Result;
 use sqlx::Row;
+use super::super::daos::share_user_dao::UserTrait;
 
+impl UserTrait for Account {}
+// 具体模块实现
 impl<'c> Table<'c, Account> {
 
     pub async fn find_by_id(&self,user_id:u32)->Result<Account>{
@@ -18,7 +21,7 @@ impl<'c> Table<'c, Account> {
         .await;
 
     }
-    pub async fn find_by_id1(&self,user_id:u32){
+    pub async fn find_by_id1(&self,_user_id:u32){
         // let b=
         //     sqlx::query_as!(Account,r#"select id,customer_surname as "name?" from orders_list where customer_surname=?"#,&"aaa")
         //     .fetch_all(&*self.pool)
@@ -33,6 +36,7 @@ impl<'c> Table<'c, Account> {
         
         
     }
+
     pub async fn test(&self){
 
         #[derive(sqlx::Type,Clone,Debug)]
@@ -48,7 +52,7 @@ impl<'c> Table<'c, Account> {
         //     .await
         //     .unwrap();
 
-        let a=sqlx::query_as::<_, Account>(
+        let _a=sqlx::query_as::<_, Account>(
             r#"
             SELECT id,customer_surname as name from orders_list where id=?
         "#
@@ -85,7 +89,7 @@ impl<'c> Table<'c, Account> {
             })
             .fetch_all(&*self.pool)
             .await.unwrap();
-        let len=account.len();
+
         
         println!("{}",account.len());
         for a  in account {
@@ -122,7 +126,7 @@ impl<'c> Table<'c, Account> {
     //     })?;
     // }
 
-    pub async fn get_user_by_id(&self, user_id: &str)->Result<Account> {
+    pub async fn get_user_by_id(&self, _user_id: &str)->Result<Account> {
 
         // let a=sqlx::query_as!(Account,
         //         r#"

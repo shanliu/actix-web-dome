@@ -1,8 +1,9 @@
 use sqlx::mysql::MySqlRow;
 use sqlx::{FromRow, MySqlPool, Pool, MySql};
 use std::sync::Arc;
-use crate::models::account::Account;
+use super::models::account::Account;
 mod account_dao;
+mod share_user_dao;
 
 pub struct Table<'r,T>
     where
@@ -11,7 +12,7 @@ pub struct Table<'r,T>
     pub pool: Arc<MySqlPool>,
     _marker:std::marker::PhantomData<&'r T>
 }
-
+// 所有模块的公共实现
 impl<'r, T> Table<'r,T>
     where
         T: FromRow<'r, MySqlRow>,

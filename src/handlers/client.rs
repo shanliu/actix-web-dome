@@ -1,16 +1,16 @@
-use actix_web::{get, post, web};
+use actix_web::{get, post};
 
 use actix_web::{ Result};
 use serde_json::json;
-use crate::handlers::{WebHandError, WebJSONResult};
+use super::{WebHandError, WebJSONResult};
 
-use actix_web::web::{Bytes};
+
 use futures::{StreamExt};
 
 use reqwest::Client;
 use actix_multipart::Multipart;
 use futures::{TryStreamExt};
-use actix_web::error::{PayloadError};
+// use actix_web::error::{PayloadError};
 
 //curl  -X POST --data 'xxxxxxxxxxxxx' http://localhost:8080/multipart1
 // #[get("/multipart1")]
@@ -64,3 +64,19 @@ pub(crate) async fn multipart2(mut payload1: Multipart) ->Result<WebJSONResult,W
 
     })))
 }
+
+#[get("/morereq")]
+pub(crate) async fn morereq() ->Result<WebJSONResult,WebHandError> {
+    let mut a =vec![1];
+    a.push(1);
+    tokio::task::spawn( async move {
+        let client = Client::new();
+        let builder = client.get("http://httpbin.org/get");
+        let res = builder.send().await.unwrap().text().await.unwrap();
+        println!("{}",res);
+    });
+    Ok(WebJSONResult::new(json!({
+
+    })))
+}
+

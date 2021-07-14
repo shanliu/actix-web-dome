@@ -1,10 +1,10 @@
-use actix_web::{get, web, HttpResponse};
+use actix_web::{get, web};
 
 use serde::{Deserialize};
 use actix_web::Result;
 use serde_json::json;
-use crate::handlers::{WebHandError, WebJSONResult};
-use crate::AppState;
+use super::{WebHandError, WebJSONResult};
+use super::AppState;
 
 
 #[derive(Deserialize)]
@@ -26,5 +26,12 @@ pub(crate) async fn index1<'a>(data: web::Data<AppState<'a>>,web::Query(info):we
     Ok(WebJSONResult::new(json!({
          "cat":format!("Hello {}!",user.show_name()),
         "id":info.id
+    })))
+}
+#[get("/db2")]
+pub(crate) async fn index2<'a>(data: web::Data<AppState<'a>>,web::Query(_info):web::Query<AuthRequest>) -> Result<WebJSONResult,WebHandError> {
+    let user=data.context.users.public_user_fn();
+    Ok(WebJSONResult::new(json!({
+        "test":user
     })))
 }
